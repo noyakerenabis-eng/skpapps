@@ -516,16 +516,38 @@ if file_penugasan and file_pelepasan:
             # PERIODE
             # ==========================================
 
-            tanggal_buat = datetime.now()
+            # Ambil range tanggal dari tabel hasil
+            tanggal_min = df_hasil["Tgl Dokumen"].min()
+            tahun = tanggal_min.year
+            bulan = tanggal_min.month
 
-            tanggal_akhir = tanggal_buat.replace(
-                day=15
+            if tanggal_min.day < 16:
+                # mundur satu bulan jika ada dokumen sebelum tanggal 16
+                if bulan == 1:
+                    bulan = 12
+                    tahun -= 1
+                else:
+                    bulan -= 1
+
+            # tanggal awal = 16 bulan referensi
+            tanggal_awal = datetime(tahun, bulan, 16)
+
+            # tanggal akhir = 15 bulan berikutnya
+            if bulan == 12:
+                tanggal_akhir = datetime(tahun+1, 1, 15)
+            else:
+                tanggal_akhir = datetime(tahun, bulan+1, 15)
+
+            bulan_nama = {
+                1:"Januari", 2:"Februari", 3:"Maret", 4:"April",
+                5:"Mei", 6:"Juni", 7:"Juli", 8:"Agustus",
+                9:"September", 10:"Oktober", 11:"November", 12:"Desember"
+            }
+
+            waktu_pelaksanaan = (
+                f"{tanggal_awal.day} {bulan_nama[tanggal_awal.month]} {tanggal_awal.year} "
+                f"s.d. {tanggal_akhir.day} {bulan_nama[tanggal_akhir.month]} {tanggal_akhir.year}"
             )
-
-            tanggal_awal = (
-                tanggal_akhir.replace(day=1)
-                - timedelta(days=1)
-            ).replace(day=16)
 
             bulan = {
                 1:"Januari",
