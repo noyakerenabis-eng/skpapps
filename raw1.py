@@ -209,9 +209,9 @@ if file_penugasan and file_pelepasan:
             st.error(
                "Kolom No Permohonan tidak ditemukan"
             )
-             st.stop()
+            st.stop()
         if "Jenis Tugas" not in df_penugasan.columns:
-             st.error(
+            st.error(
                  "Kolom Jenis Tugas tidak ditemukan"
              )
 
