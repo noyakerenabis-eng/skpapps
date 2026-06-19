@@ -731,6 +731,13 @@ if file_penugasan and file_pelepasan:
                      (0,0),
                      (-1,-1),
                      0),
+                    ('TOPPADDING', 
+                     (0,0), (-1,-1), 
+                     0),
+                    
+                    ('BOTTOMPADDING', 
+                     (0,0), (-1,-1), 
+                     0),
 
                 ])
             )
@@ -740,7 +747,7 @@ if file_penugasan and file_pelepasan:
             )
 
             elements.append(
-                Spacer(1,5)
+                Spacer(1,15)
             )
 
             # ==========================================
