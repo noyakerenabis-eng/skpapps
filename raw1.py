@@ -1083,10 +1083,11 @@ if file_penugasan and file_pelepasan:
                 colWidths=[TTD_WIDTH/2])
 
                 ttd_table = Table(
-                    [["",kiri, kanan]],
+                    [["", kiri, "", kanan]],
                     colWidths=[
                         50,
                         250,
+                        50
                         250
                     ]
                 )
