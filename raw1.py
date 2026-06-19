@@ -276,8 +276,7 @@ if file_penugasan and file_pelepasan:
             st.warning(
                 "Pilih minimal satu Jenis Tugas untuk generate dokumen"
             )
-
-        st.stop()
+            st.stop()
         df_penugasan_terpilih = df_penugasan[
             df_penugasan["Jenis Tugas"]
             .astype(str)
