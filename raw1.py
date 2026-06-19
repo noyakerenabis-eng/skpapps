@@ -142,9 +142,17 @@ dasar = st.sidebar.text_area(
     height=100
 )
 
-kegiatan = st.sidebar.text_input(
-    "Nama Kegiatan",
-    value="Membantu proses sertifikasi kegiatan karantina impor dan antar area"
+rhk = st.sidebar.text_input(
+    "Rencana Hasil Kerja",
+    value=""
+)
+ra = st.sidebar.text_input(
+    "Rencana Aksi",
+    value=""
+)
+iki = st.sidebar.text_input(
+    "Indikator Kerja Individu",
+    value=""
 )
 
 ttd_kiri = st.file_uploader(
@@ -661,13 +669,24 @@ if file_penugasan and file_pelepasan:
 
                 [
                     "3.",
-                    "Nama Kegiatan",
+                    "Rencana Hasil Kerja",
                     ":",
-                    kegiatan
+                    rhk
                 ],
-
                 [
                     "4.",
+                    "Rencana Aksi",
+                    ":",
+                    ra
+                ],
+                [
+                    "5.",
+                    "Indikator Kinerja Individu",
+                    ":",
+                    iki
+                ],
+                [
+                    "6.",
                     "Waktu Pelaksanaan",
                     ":",
                     waktu_pelaksanaan
