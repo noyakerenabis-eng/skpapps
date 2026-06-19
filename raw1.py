@@ -194,29 +194,28 @@ if file_pelepasan and len(file_pelepasan) > 3:
 # ==================================================
 
 if file_penugasan and file_pelepasan:
-try:
+    try:
 
-# ==========================================
-# BACA PENUGASAN
-# ==========================================
+        # ==========================================
+        # BACA PENUGASAN
+        # ==========================================
 
-        df_penugasan = baca_laporan(
+         df_penugasan = baca_laporan(
             file_penugasan
-        )
+         )
 
-        if "No Permohonan" not in df_penugasan.columns:
+         if "No Permohonan" not in df_penugasan.columns:
 
-            st.error(
+             st.error(
                 "Kolom No Permohonan tidak ditemukan"
-            )
-        st.stop()
-        if "Jenis Tugas" not in df_penugasan.columns:
+             )
+             st.stop()
+         if "Jenis Tugas" not in df_penugasan.columns:
+             st.error(
+                 "Kolom Jenis Tugas tidak ditemukan"
+             )
 
-            st.error(
-                "Kolom Jenis Tugas tidak ditemukan"
-            )
-
-        st.stop()
+             st.stop()
         # ==========================================
         # NAMA DAN NIP OTOMATIS
         # ==========================================
