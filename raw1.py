@@ -171,8 +171,9 @@ ttd_kanan = st.file_uploader(
 # ==================================================
 
 file_penugasan = st.file_uploader(
-    "Upload File Penugasan",
+    "Upload File Penugasan (UPLOAD PENUGASAN PERIODE SEBELUMYA untuk menghindari penugasan sebelum waktu pelaksanaan",
     type=["csv"]
+    ccept_multiple_files=True
 )
 
 file_pelepasan = st.file_uploader(
