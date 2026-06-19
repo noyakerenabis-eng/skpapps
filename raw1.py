@@ -1026,7 +1026,7 @@ if file_penugasan and file_pelepasan:
                     height=40
                 )
 
-                TTD_WIDTH = 525
+                TTD_WIDTH = 565
 
                 kiri = Table([
 
