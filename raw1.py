@@ -211,7 +211,14 @@ if file_penugasan and file_pelepasan:
             )
 
             st.stop()
+        
+        if "Jenis Tugas" not in df_penugasan.columns:
 
+            st.error(
+                "Kolom Jenis Tugas tidak ditemukan"
+            )
+
+    st.stop()
         # ==========================================
         # NAMA DAN NIP OTOMATIS
         # ==========================================
@@ -233,13 +240,62 @@ if file_penugasan and file_pelepasan:
         st.success(
             f"Petugas : {nama_petugas}"
         )
+        # ==========================================
+        # REKAP JENIS TUGAS
+        # ==========================================
+        
+        rekap_jenis_tugas = (
+            df_penugasan
+            .dropna(subset=["No Permohonan"])
+            .groupby("Jenis Tugas")["No Permohonan"]
+            .nunique()
+            .reset_index(name="Jumlah No Permohonan Unik")
+        )
+        
+        st.subheader(
+            "Rekap Jenis Tugas"
+        )
+        
+        st.dataframe(
+            rekap_jenis_tugas,
+            use_container_width=True
+        )
+        
+        jenis_tugas_opsi = sorted(
+            df_penugasan["Jenis Tugas"]
+            .dropna()
+            .astype(str)
+            .unique()
+            .tolist()
+        )
+        
+        jenis_tugas_dipilih = st.multiselect(
+            "Pilih Jenis Tugas untuk Generate Dokumen",
+            options=jenis_tugas_opsi,
+            default=jenis_tugas_opsi
+        )
+        if not jenis_tugas_dipilih:
 
+            st.warning(
+                "Pilih minimal satu Jenis Tugas untuk generate dokumen"
+            )
+
+        st.stop()
+        df_penugasan_terpilih = df_penugasan[
+            df_penugasan["Jenis Tugas"]
+            .astype(str)
+            .isin(jenis_tugas_dipilih
+        ]
+        
+        st.info(
+            f"Generate dokumen untuk {len(jenis_tugas_dipilih)} Jenis Tugas"
+        )
         # ==========================================
         # NOMOR DOKUMEN UNIK
         # ==========================================
 
         nomor_dokumen = (
-            df_penugasan["No Permohonan"]
+            df_penugasan_terpilih["No Permohonan"]
             .dropna()
             .astype(str)
             .unique()
