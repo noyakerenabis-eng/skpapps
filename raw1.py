@@ -1051,7 +1051,7 @@ if file_penugasan and file_pelepasan:
                     ]
 
                 ],
-                colWidths=[100, 415])
+                colWidths=[TTD_WIDTH/2])
 
                 kanan = Table([
 
@@ -1080,13 +1080,13 @@ if file_penugasan and file_pelepasan:
                     ]
 
                 ],
-                colWidths=[315, 250])
+                colWidths=[TTD_WIDTH/2])
 
                 ttd_table = Table(
                     [[kiri, kanan]],
                     colWidths=[
-                        TTD_WIDTH/2,
-                        TTD_WIDTH/2
+                        250,
+                        315
                     ]
                 )
 
