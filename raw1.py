@@ -170,10 +170,17 @@ ttd_kanan = st.file_uploader(
 # UPLOAD FILE
 # ==================================================
 
-file_penugasan = st.file_uploader(
-    "Upload File Penugasan (UPLOAD PENUGASAN PERIODE SEBELUMYA untuk menghindari penugasan sebelum waktu pelaksanaan)",
-    type=["csv"],
-    accept_multiple_files=True
+list_df_penugasan = []
+
+for file in file_penugasan:
+
+    df_tmp = baca_laporan(file)
+
+    list_df_penugasan.append(df_tmp)
+
+df_penugasan = pd.concat(
+    list_df_penugasan,
+    ignore_index=True
 )
 
 file_pelepasan = st.file_uploader(
