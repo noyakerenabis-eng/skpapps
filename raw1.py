@@ -219,24 +219,24 @@ if file_penugasan and file_pelepasan:
         # ==========================================
         # NAMA DAN NIP OTOMATIS
         # ==========================================
+        
+         nama_petugas = str(
+              df_penugasan.iloc[0]["Nama Petugas"]
+         )
 
-        nama_petugas = str(
-            df_penugasan.iloc[0]["Nama Petugas"]
-        )
-
-        nip_petugas = str(
+         nip_petugas = str(
             df_penugasan.iloc[0]["NIP Petugas"]
-        )
+         )
 
-        nip_petugas = (
+         nip_petugas = (
             nip_petugas
             .replace('="', '')
             .replace('"', '')
-        )
+         )
 
-        st.success(
-            f"Petugas : {nama_petugas}"
-        )
+         st.success(
+             f"Petugas : {nama_petugas}"
+         )
         # ==========================================
         # REKAP JENIS TUGAS
         # ==========================================
