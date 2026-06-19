@@ -1024,44 +1024,47 @@ if file_penugasan and file_pelepasan:
                 Spacer(1,15)
             )
 
-            if ttd_kiri and ttd_kanan:
+           from reportlab.lib.utils import ImageReader
 
-                ttd_surya = Image(
-                    ttd_kiri,
-                    width=100,
-                    height=40
-                )
-
+           if ttd_kiri and ttd_kanan:
+            
+                # gabungkan stempel + tanda tangan kiri
+                ttd_surya = Table([
+                    [
+                        Image(STEMPEL_PATH, width=120, height=120),   # stempel
+                        Image(ttd_kiri, width=100, height=40)         # tanda tangan kiri
+                    ]
+                ], colWidths=[120, 100])
+            
                 ttd_petugas = Image(
                     ttd_kanan,
                     width=100,
                     height=40
                 )
-
+            
                 TTD_WIDTH = 565
-
+            
                 kiri = Table([
-
                     [
                         Paragraph(
                             "<br/>Mengetahui,<br/>Ketua Tim Karantina Tumbuhan",
                             style_wrap
                         )
                     ],
-
+            
                     [Spacer(1,0)],
-
-                    [ttd_surya],
-
+            
+                    [ttd_surya],   # sekarang stempel + tanda tangan kiri jadi satu blok
+            
                     [Spacer(1,0)],
-
+            
                     [
                         Paragraph(
                             "<b>Surya Dharma, S.P.</b><br/>NIP. 197705152001121002",
                             style_wrap
                         )
                     ]
-
+            
                 ],
                 colWidths=[TTD_WIDTH/2])
 
