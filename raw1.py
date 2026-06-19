@@ -871,12 +871,12 @@ if file_penugasan and file_pelepasan:
                         ('TOPPADDING',
                          (0,0),
                          (-1,-1),
-                         2),
+                         0),
 
                         ('BOTTOMPADDING',
                          (0,0),
                          (-1,-1),
-                         2)
+                         0)
 
                     ])
                 )
