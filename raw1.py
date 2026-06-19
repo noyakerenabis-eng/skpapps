@@ -21,7 +21,7 @@ from reportlab.lib.styles import (
     getSampleStyleSheet,
     ParagraphStyle
 )
-
+from reportlab.lib.utils import ImageReader 
 # ==================================================
 # CONFIG
 # ==================================================
@@ -167,14 +167,16 @@ ttd_kanan = st.file_uploader(
 )
 from io import BytesIO
 
-ttd_kiri_bytes = None
+from reportlab.lib.utils import ImageReader
+
+ttd_kiri_reader = None
 if ttd_kiri:
-    ttd_kiri_bytes = BytesIO(ttd_kiri.getvalue())
+    ttd_kiri_reader = ImageReader(BytesIO(ttd_kiri.getvalue()))
 
-ttd_kanan_bytes = None
+ttd_kanan_reader = None
 if ttd_kanan:
-    ttd_kanan_bytes = BytesIO(ttd_kanan.getvalue())
-
+    ttd_kanan_reader = ImageReader(BytesIO(ttd_kanan.getvalue()))
+    
 # ==================================================
 # UPLOAD FILE
 # ==================================================
