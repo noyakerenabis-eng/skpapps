@@ -32,6 +32,7 @@ st.set_page_config(
 )
 
 HEADER_IMAGE = "Header.png"  # Ganti dengan path gambar header Anda
+STEMPEL_PATH = "Stempel.png"
 
 # ==================================================
 # STYLE PDF
@@ -1135,14 +1136,14 @@ if file_penugasan and file_pelepasan:
             # BUILD PDF
             # ==========================================
             def draw_ttd_overlay(canv, doc):
-                # koordinat X,Y sesuaikan dengan posisi di halaman
-                x, y = 100, 150  
-            
-                # gambar tanda tangan kiri
-                canv.drawImage(ttd_kiri, x, y, width=100, height=40, mask='auto')
-            
-                # gambar stempel di atas tanda tangan (overlap)
-                canv.drawImage("Stempel.png", x-10, y-20, width=120, height=120, mask='auto')
+            x, y = 100, 150  
+        
+            # gambar stempel dulu (background)
+            canv.drawImage(STEMPEL_PATH, x-10, y-20, width=120, height=120, mask='auto')
+        
+            # gambar tanda tangan kiri di atas stempel
+            canv.drawImage(ttd_kiri, x, y, width=100, height=40, mask='auto')
+
 
             pdf.build(elements, onFirstPage=draw_ttd_overlay, onLaterPages=draw_ttd_overlay)
 
