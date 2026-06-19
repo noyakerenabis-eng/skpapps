@@ -1086,7 +1086,7 @@ if file_penugasan and file_pelepasan:
                     [[kiri, kanan]],
                     colWidths=[
                         250,
-                        315
+                        250
                     ]
                 )
 
@@ -1120,14 +1120,8 @@ if file_penugasan and file_pelepasan:
 
                         ('ALIGN',
                          (0,0),
-                         (0,0),
-                         'LEFT'),
-
-                        ('ALIGN',
-                         (1,0),
-                         (1,0),
-                         'RIGHT')
-
+                         (-1,-1),
+                         'CENTER')
                     ])
                 )
 
