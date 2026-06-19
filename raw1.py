@@ -284,7 +284,7 @@ if file_penugasan and file_pelepasan:
         df_penugasan_terpilih = df_penugasan[
             df_penugasan["Jenis Tugas"]
             .astype(str)
-            .isin(jenis_tugas_dipilih
+            .isin(jenis_tugas_dipilih)
         ]
         
         st.info(
