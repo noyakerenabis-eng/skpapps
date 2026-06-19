@@ -1142,7 +1142,7 @@ if file_penugasan and file_pelepasan:
                 canv.drawImage(ttd_kiri, x, y, width=100, height=40, mask='auto')
             
                 # gambar stempel di atas tanda tangan (overlap)
-                canv.drawImage("stempel.png", x-10, y-20, width=120, height=120, mask='auto')
+                canv.drawImage("Stempel.png", x-10, y-20, width=120, height=120, mask='auto')
 
             pdf.build(elements, onFirstPage=draw_ttd_overlay, onLaterPages=draw_ttd_overlay)
 
