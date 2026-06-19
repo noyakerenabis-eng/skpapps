@@ -188,12 +188,12 @@ if file_pelepasan and len(file_pelepasan) > 3:
     )
 
     st.stop()
+
     # ==================================================
-# PROSES
-# ==================================================
+    # PROSES
+    # ==================================================
 
-if file_penugasan and file_pelepasan:
-
+    if file_penugasan and file_pelepasan:
     try:
 
         # ==========================================
