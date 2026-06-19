@@ -1051,7 +1051,7 @@ if file_penugasan and file_pelepasan:
                     ]
 
                 ],
-                colWidths=[200, 315])
+                colWidths=[250, 315])
 
                 kanan = Table([
 
