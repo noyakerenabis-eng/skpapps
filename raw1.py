@@ -1087,7 +1087,7 @@ if file_penugasan and file_pelepasan:
                     colWidths=[
                         50,
                         250,
-                        50
+                        50,
                         250
                     ]
                 )
