@@ -200,43 +200,43 @@ if file_penugasan and file_pelepasan:
         # BACA PENUGASAN
         # ==========================================
 
-         df_penugasan = baca_laporan(
+        df_penugasan = baca_laporan(
             file_penugasan
          )
 
-         if "No Permohonan" not in df_penugasan.columns:
+        if "No Permohonan" not in df_penugasan.columns:
 
-             st.error(
-                "Kolom No Permohonan tidak ditemukan"
-             )
+            st.error(
+               "Kolom No Permohonan tidak ditemukan"
+            )
              st.stop()
-         if "Jenis Tugas" not in df_penugasan.columns:
+        if "Jenis Tugas" not in df_penugasan.columns:
              st.error(
                  "Kolom Jenis Tugas tidak ditemukan"
              )
 
-             st.stop()
+            st.stop()
         # ==========================================
         # NAMA DAN NIP OTOMATIS
         # ==========================================
         
-         nama_petugas = str(
+        nama_petugas = str(
               df_penugasan.iloc[0]["Nama Petugas"]
-         )
+        )
 
-         nip_petugas = str(
+        nip_petugas = str(
             df_penugasan.iloc[0]["NIP Petugas"]
-         )
+        )
 
-         nip_petugas = (
+        nip_petugas = (
             nip_petugas
             .replace('="', '')
             .replace('"', '')
-         )
+        )
 
-         st.success(
-             f"Petugas : {nama_petugas}"
-         )
+        st.success(
+            f"Petugas : {nama_petugas}"
+        )
         # ==========================================
         # REKAP JENIS TUGAS
         # ==========================================
