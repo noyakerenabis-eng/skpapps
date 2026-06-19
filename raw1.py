@@ -165,6 +165,15 @@ ttd_kanan = st.file_uploader(
     "TTD Petugas",
     type=["png"]
 )
+from io import BytesIO
+
+ttd_kiri_bytes = None
+if ttd_kiri:
+    ttd_kiri_bytes = BytesIO(ttd_kiri.getvalue())
+
+ttd_kanan_bytes = None
+if ttd_kanan:
+    ttd_kanan_bytes = BytesIO(ttd_kanan.getvalue())
 
 # ==================================================
 # UPLOAD FILE
@@ -1142,7 +1151,7 @@ if file_penugasan and file_pelepasan:
                 canv.drawImage(STEMPEL_PATH, x-10, y-20, width=120, height=120, mask='auto')
             
                 # gambar tanda tangan kiri di atas stempel
-                canv.drawImage(ttd_kiri, x, y, width=100, height=40, mask='auto')
+                canv.drawImage(ttd_kiri_bytes, x, y, width=100, height=40, mask='auto')
 
 
             pdf.build(elements, onFirstPage=draw_ttd_overlay, onLaterPages=draw_ttd_overlay)
