@@ -1194,11 +1194,8 @@ if file_penugasan and file_pelepasan:
 
                     [
                         Paragraph(
-                            f"Pekanbaru, {datetime.now().day} "
-                            f"{bulan[datetime.now().month]} "
-                            f"{datetime.now().year}"
-                            f"<br/><br/>{jabatan}",
-                            style_wrap
+                            jabatan,
+                            syle_wrap
                         )
                     ],
 
@@ -1218,7 +1215,29 @@ if file_penugasan and file_pelepasan:
 
                 ],
                 colWidths=[TTD_WIDTH/2])
-
+                tanggal_kanan = Paragraph(
+                    f"Pekanbaru, {datetime.now().day} "
+                    f"{bulan[datetime.now().month]} "
+                    f"{datetime.now().year}",
+                    style_wrap
+                )
+                
+                baris_tanggal = Table(
+                    [["", "", tanggal_kanan]],
+                    colWidths=[
+                        250,
+                        50,
+                        200
+                    ]
+                )
+                
+                elements.append(
+                    baris_tanggal
+                )
+                
+                elements.append(
+                    Spacer(1,15)
+                )
                 ttd_table = Table(
                     [["", kiri, "", kanan]],
                     colWidths=[
