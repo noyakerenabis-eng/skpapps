@@ -1110,7 +1110,7 @@ if file_penugasan and file_pelepasan:
                     )
             
                     stempel = stempel.resize(
-                        (120, 120)
+                        (180, 180)
                     )
             
                     kanvas = PILImage.new(
@@ -1127,7 +1127,7 @@ if file_penugasan and file_pelepasan:
             
                     kanvas.paste(
                         stempel,
-                        (55, 0),
+                        (10, 0),
                         stempel
                     )
             
