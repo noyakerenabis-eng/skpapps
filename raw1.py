@@ -546,41 +546,41 @@ if file_penugasan and file_pelepasan:
         if st.session_state.pdf_bytes:
 
             col_preview, col_download = st.columns(2)
-            
+        
             with col_preview:
-            
+        
                 if st.button(
                     "Preview PDF"
                 ):
-            
+        
                     st.session_state.show_preview = True
-            
-             with col_download:
-            
-                  st.download_button(
-                      "Download PDF",
-                       data=st.session_state.pdf_bytes,
-                       file_name="laporan_karantina.pdf",
-                       mime="application/pdf"
-                   )
-            
-             if st.session_state.show_preview:
-            
-                 pdf_base64 = base64.b64encode(
-                     st.session_state.pdf_bytes
-                 ).decode("utf-8")
-            
-                 st.markdown(
-                     f"""
-                     <iframe
-                         src="data:application/pdf;base64,{pdf_base64}"
-                         width="100%"
-                         height="700"
-                         type="application/pdf">
-                     </iframe>
-                     """,
-                     unsafe_allow_html=True
-                  )
+        
+            with col_download:
+        
+                st.download_button(
+                    "Download PDF",
+                    data=st.session_state.pdf_bytes,
+                    file_name="laporan_karantina.pdf",
+                    mime="application/pdf"
+                )
+        
+            if st.session_state.show_preview:
+        
+                pdf_base64 = base64.b64encode(
+                    st.session_state.pdf_bytes
+                ).decode("utf-8")
+        
+                st.markdown(
+                    f"""
+                    <iframe
+                        src="data:application/pdf;base64,{pdf_base64}"
+                        width="100%"
+                        height="700"
+                        type="application/pdf">
+                    </iframe>
+                    """,
+                    unsafe_allow_html=True
+                )
 
             hasil = []
 
