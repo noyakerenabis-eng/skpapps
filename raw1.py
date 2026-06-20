@@ -1203,7 +1203,7 @@ if file_penugasan and file_pelepasan:
 
                     [ttd_petugas],
 
-                    [Spacer(1,3)],
+                    [Spacer(1,0)],
 
                     [
                         Paragraph(
