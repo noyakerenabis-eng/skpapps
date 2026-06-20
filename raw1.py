@@ -7,6 +7,8 @@ from io import BytesIO
 from datetime import datetime
 from datetime import timedelta
 
+from PIL import Image as PILImage
+
 from reportlab.platypus import (
     SimpleDocTemplate,
     Table,
@@ -190,6 +192,11 @@ with kolom_ttd:
         type=["png"]
     )
 
+    stempel_kiri = st.file_uploader(
+        "Stempel Ketua Tim",
+        type=["png"]
+    )
+    
     ttd_kanan = st.file_uploader(
         "TTD Petugas",
         type=["png"]
@@ -1097,6 +1104,54 @@ if file_penugasan and file_pelepasan:
             )
           
             if ttd_kiri and ttd_kanan:
+            
+            if ttd_kiri and stempel_kiri:
+
+                tanda_tangan = PILImage.open(ttd_kiri).convert("RGBA")
+                stempel = PILImage.open(stempel_kiri).convert("RGBA")
+            
+                tanda_tangan = tanda_tangan.resize(
+                    (220, 90)
+                )
+            
+                stempel = stempel.resize(
+                    (120, 120)
+                )
+            
+                kanvas = PILImage.new(
+                    "RGBA",
+                    (240, 130),
+                    (255, 255, 255, 0)
+                )
+            
+                kanvas.paste(
+                    tanda_tangan,
+                    (10, 35),
+                    tanda_tangan
+                )
+            
+                kanvas.paste(
+                    stempel,
+                    (55, 0),
+                    stempel
+                )
+            
+                buffer_ttd_kiri = BytesIO()
+            
+                kanvas.save(
+                    buffer_ttd_kiri,
+                    format="PNG"
+                )
+            
+                buffer_ttd_kiri.seek(0)
+            
+                ttd_surya = Image(
+                    buffer_ttd_kiri,
+                    width=110,
+                    height=60
+                )
+            
+            else:
             
                 ttd_surya = Image(
                     ttd_kiri,
