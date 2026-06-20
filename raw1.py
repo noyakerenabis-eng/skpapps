@@ -111,6 +111,9 @@ def baca_laporan(file):
 st.title(
     "Generator Laporan Karantina"
 )
+st.warning(
+    "Sebelum generate PDF, isi dulu data identitas dan informasi laporan melalui sidebar."
+)
 
 # ==================================================
 # IDENTITAS
