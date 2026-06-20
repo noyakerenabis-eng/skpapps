@@ -1252,7 +1252,7 @@ if file_penugasan and file_pelepasan:
                 )
                 
                 elements.append(
-                    Spacer(1,15)
+                    Spacer(1,0)
                 )
                 ttd_table = Table(
                     [["", kiri, "", kanan]],
