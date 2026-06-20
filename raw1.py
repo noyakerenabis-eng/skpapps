@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
-import fitz 
+import fitz
+import base64
 
 from io import StringIO
 from io import BytesIO
@@ -165,6 +166,11 @@ def tambah_stempel_dekat_ketua_tim(pdf_buffer, stempel_path):
 st.title(
     "Generator Laporan Karantina"
 )
+if "pdf_bytes" not in st.session_state:
+    st.session_state.pdf_bytes = None
+
+if "show_preview" not in st.session_state:
+    st.session_state.show_preview = False
 st.warning(
     "Sebelum generate PDF, isi dulu data identitas dan informasi laporan melalui sidebar."
 )
@@ -536,6 +542,44 @@ if file_penugasan and file_pelepasan:
         if st.button(
             "Generate PDF"
         ):
+            if st.session_state.pdf_bytes:
+
+                col_preview, col_download = st.columns(2)
+            
+                with col_preview:
+            
+                    if st.button(
+                        "Preview PDF"
+                    ):
+            
+                        st.session_state.show_preview = True
+            
+                with col_download:
+            
+                    st.download_button(
+                        "Download PDF",
+                        data=st.session_state.pdf_bytes,
+                        file_name="laporan_karantina.pdf",
+                        mime="application/pdf"
+                    )
+            
+                if st.session_state.show_preview:
+            
+                    pdf_base64 = base64.b64encode(
+                        st.session_state.pdf_bytes
+                    ).decode("utf-8")
+            
+                    st.markdown(
+                        f"""
+                        <iframe
+                            src="data:application/pdf;base64,{pdf_base64}"
+                            width="100%"
+                            height="700"
+                            type="application/pdf">
+                        </iframe>
+                        """,
+                        unsafe_allow_html=True
+                    )
 
             hasil = []
 
@@ -1320,11 +1364,11 @@ if file_penugasan and file_pelepasan:
                 "PDF berhasil dibuat"
             )
 
-            st.download_button(
-                "📄 Download PDF",
-                data=buffer,
-                file_name="laporan_karantina.pdf",
-                mime="application/pdf"
+            st.session_state.pdf_bytes = buffer.getvalue()
+            st.session_state.show_preview = False
+
+            st.success(
+                "PDF berhasil dibuat. Klik Preview PDF untuk melihat sebelum download."
             )
 
     except Exception as e:
