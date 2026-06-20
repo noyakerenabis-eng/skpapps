@@ -1106,30 +1106,30 @@ if file_penugasan and file_pelepasan:
                     stempel = PILImage.open(STEMPEL_PATH).convert("RGBA")
             
                     tanda_tangan = tanda_tangan.resize(
-                        (220, 90)
+                        (170, 700)
                     )
             
                     stempel = stempel.resize(
-                        (160, 160)
+                        (95, 95)
                     )
             
                     kanvas = PILImage.new(
                         "RGBA",
-                        (360, 180),
+                        (210, 115),
                         (255, 255, 255, 0)
                     )
             
                     kanvas.paste(
+                        stempel,
+                        (15, 5),
+                        stempel
+                    )
+                    kanvas.paste(
                         tanda_tangan,
-                        (95, 55),
+                        (65, 35),
                         tanda_tangan
                     )
             
-                    kanvas.paste(
-                        stempel,
-                        (0, 0),
-                        stempel
-                    )
             
                     buffer_ttd_kiri = BytesIO()
             
@@ -1142,16 +1142,16 @@ if file_penugasan and file_pelepasan:
             
                     ttd_surya = Image(
                         buffer_ttd_kiri,
-                        width=220,
-                        height=110
+                        width=130,
+                        height=70
                     )
             
                 else:
             
                     ttd_surya = Image(
                         ttd_kiri,
-                        width=220,
-                        height=110
+                        width=130,
+                        height=70
                     )
             
                 ttd_petugas = Image(
