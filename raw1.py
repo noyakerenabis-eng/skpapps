@@ -1330,12 +1330,6 @@ if file_penugasan and file_pelepasan:
             st.success(
                 "PDF berhasil dibuat. Klik Preview PDF untuk melihat sebelum download."
             )
-
-    except Exception as e:
-
-        st.error(
-            f"Terjadi kesalahan: {e}"
-        )
         # -----------------------------
         # TAMPILKAN SETELAH PDF ADA
         # -----------------------------
@@ -1371,4 +1365,10 @@ if file_penugasan and file_pelepasan:
                     """,
                     unsafe_allow_html=True
                 )
+    except Exception as e:
+
+        st.error(
+            f"Terjadi kesalahan: {e}"
+        )
+      
 
