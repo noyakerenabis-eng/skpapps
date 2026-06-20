@@ -129,8 +129,8 @@ def tambah_stempel_dekat_ketua_tim(pdf_buffer, stempel_path):
 
     posisi = hasil_cari[-1]
 
-    x = posisi.x0 - 0
-    y = posisi.y1 + 0
+    x = posisi.x0 - 100
+    y = posisi.y1 - 10
 
     ukuran = 85
 
