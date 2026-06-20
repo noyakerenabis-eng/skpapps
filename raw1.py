@@ -170,17 +170,10 @@ ttd_kanan = st.file_uploader(
 # UPLOAD FILE
 # ==================================================
 
-list_df_penugasan = []
-
-for file in file_penugasan:
-
-    df_tmp = baca_laporan(file)
-
-    list_df_penugasan.append(df_tmp)
-
-df_penugasan = pd.concat(
-    list_df_penugasan,
-    ignore_index=True
+file_penugasan = st.file_uploader(
+    "Upload File Penugasan Periode Ini / Sebelumnya",
+    type=["csv"],
+    accept_multiple_files=True
 )
 
 file_pelepasan = st.file_uploader(
@@ -207,11 +200,19 @@ if file_penugasan and file_pelepasan:
         # ==========================================
         # BACA PENUGASAN
         # ==========================================
-
-        df_penugasan = baca_laporan(
-            file_penugasan
-         )
-
+        list_df_penugasan = []
+        
+        for file in file_penugasan:
+        
+            df_tmp = baca_laporan(file)
+        
+            list_df_penugasan.append(df_tmp)
+        
+        df_penugasan = pd.concat(
+            list_df_penugasan,
+            ignore_index=True
+        )
+       
         if "No Permohonan" not in df_penugasan.columns:
 
             st.error(
