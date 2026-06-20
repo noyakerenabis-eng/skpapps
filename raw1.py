@@ -1191,7 +1191,7 @@ if file_penugasan and file_pelepasan:
                 colWidths=[TTD_WIDTH/2])
 
                 kanan = Table([
-                    [Spacer(1,5)],
+                    [Spacer(1,10)],
                     [
                         Paragraph(
                             jabatan,
