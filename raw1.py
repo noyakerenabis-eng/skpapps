@@ -292,9 +292,7 @@ if file_penugasan and file_pelepasan:
             .isin(jenis_tugas_dipilih)
         ]
         
-        st.info(
-            f"Generate dokumen untuk {len(jenis_tugas_dipilih)} Jenis Tugas"
-        )
+       
         # ==========================================
         # NOMOR DOKUMEN UNIK
         # ==========================================
@@ -306,11 +304,7 @@ if file_penugasan and file_pelepasan:
             .unique()
             .tolist()
         )
-
-        st.info(
-            f"Ditemukan {len(nomor_dokumen)} nomor dokumen unik"
-        )
-
+       
         # ==========================================
         # BACA PELEPASAN
         # ==========================================
@@ -345,11 +339,25 @@ if file_penugasan and file_pelepasan:
             .astype(str)
             .isin(nomor_dokumen)
         ]
+        with st.sidebar.expander(
+            "Informasi Proses"
+        ):
 
-        st.success(
-            f"Ditemukan {len(df_filter)} baris yang cocok"
-        )
-
+            st.metric(
+                "Jenis Tugas Dipilih",
+                len(jenis_tugas_dipilih)
+            )
+    
+            st.metric(
+                "Nomor Dokumen Unik",
+                len(nomor_dokumen)
+            )
+    
+            st.metric(
+                "Baris Cocok",
+                len(df_filter)
+            )
+       
         nomor_opsi = sorted(
             df_filter["No. K.1.1"]
             .astype(str)
