@@ -1142,16 +1142,16 @@ if file_penugasan and file_pelepasan:
             
                     ttd_surya = Image(
                         buffer_ttd_kiri,
-                        width=110,
-                        height=60
+                        width=220,
+                        height=110
                     )
             
                 else:
             
                     ttd_surya = Image(
                         ttd_kiri,
-                        width=100,
-                        height=40
+                        width=220,
+                        height=110
                     )
             
                 ttd_petugas = Image(
