@@ -1110,24 +1110,24 @@ if file_penugasan and file_pelepasan:
                     )
             
                     stempel = stempel.resize(
-                        (180, 180)
+                        (160, 160)
                     )
             
                     kanvas = PILImage.new(
                         "RGBA",
-                        (240, 130),
+                        (360, 180),
                         (255, 255, 255, 0)
                     )
             
                     kanvas.paste(
                         tanda_tangan,
-                        (10, 35),
+                        (95, 55),
                         tanda_tangan
                     )
             
                     kanvas.paste(
                         stempel,
-                        (10, 0),
+                        (0, 0),
                         stempel
                     )
             
