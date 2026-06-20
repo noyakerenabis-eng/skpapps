@@ -8,6 +8,7 @@ from io import BytesIO
 
 from datetime import datetime
 from datetime import timedelta
+from streamlit_pdf_viewer import pdf_viewer
 
 from PIL import Image as PILImage
 
@@ -1350,21 +1351,8 @@ if file_penugasan and file_pelepasan:
                 )
         
             if st.session_state.get("show_preview", False):
-        
-                pdf_base64 = base64.b64encode(
-                    st.session_state.pdf_bytes
-                ).decode()
-        
-                st.markdown(
-                    f"""
-                    <iframe
-                        src="data:application/pdf;base64,{pdf_base64}"
-                        width="100%"
-                        height="700">
-                    </iframe>
-                    """,
-                    unsafe_allow_html=True
-                )
+                pdf_viewer(st.session_state.pdf_bytes)
+                
     except Exception as e:
 
         st.error(
