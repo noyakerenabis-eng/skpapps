@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+import fitz 
 
 from io import StringIO
 from io import BytesIO
@@ -105,7 +106,58 @@ def baca_laporan(file):
     )
 
     return df
+    
+def tambah_stempel_dekat_ketua_tim(pdf_buffer, stempel_path):
 
+    pdf_buffer.seek(0)
+
+    doc = fitz.open(
+        stream=pdf_buffer.read(),
+        filetype="pdf"
+    )
+
+    halaman = doc[-1]
+
+    hasil_cari = halaman.search_for(
+        "Ketua Tim"
+    )
+
+    if not hasil_cari:
+
+        pdf_buffer.seek(0)
+        return pdf_buffer
+
+    posisi = hasil_cari[-1]
+
+    x = posisi.x0 - 10
+    y = posisi.y1 + 15
+
+    ukuran = 85
+
+    kotak_stempel = fitz.Rect(
+        x,
+        y,
+        x + ukuran,
+        y + ukuran
+    )
+
+    halaman.insert_image(
+        kotak_stempel,
+        filename=stempel_path,
+        overlay=True
+    )
+
+    hasil_buffer = BytesIO()
+
+    doc.save(
+        hasil_buffer
+    )
+
+    doc.close()
+
+    hasil_buffer.seek(0)
+
+    return hasil_buffer
 # ==================================================
 # JUDUL
 # ==================================================
@@ -1224,6 +1276,10 @@ if file_penugasan and file_pelepasan:
 
             pdf.build(elements)
             buffer.seek(0)
+            buffer = tambah_stempel_dekat_ketua_tim(
+                buffer,
+                STEMPEL_PATH
+            )
 
             st.success(
                 "PDF berhasil dibuat"
