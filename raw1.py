@@ -1095,179 +1095,179 @@ if file_penugasan and file_pelepasan:
                 tabel
             )
 
-        # ==========================================
-        # TTD
-        # ==========================================
+            # ==========================================
+            # TTD
+            # ==========================================
         
-        elements.append(
-            Spacer(1,15)
-        )
-        
-        if ttd_kiri and ttd_kanan:
-        
-            if stempel_kiri:
-        
-                tanda_tangan = PILImage.open(ttd_kiri).convert("RGBA")
-                stempel = PILImage.open(stempel_kiri).convert("RGBA")
-        
-                tanda_tangan = tanda_tangan.resize(
-                    (220, 90)
-                )
-        
-                stempel = stempel.resize(
-                    (120, 120)
-                )
-        
-                kanvas = PILImage.new(
-                    "RGBA",
-                    (240, 130),
-                    (255, 255, 255, 0)
-                )
-        
-                kanvas.paste(
-                    tanda_tangan,
-                    (10, 35),
-                    tanda_tangan
-                )
-        
-                kanvas.paste(
-                    stempel,
-                    (55, 0),
-                    stempel
-                )
-        
-                buffer_ttd_kiri = BytesIO()
-        
-                kanvas.save(
-                    buffer_ttd_kiri,
-                    format="PNG"
-                )
-        
-                buffer_ttd_kiri.seek(0)
-        
-                ttd_surya = Image(
-                    buffer_ttd_kiri,
-                    width=110,
-                    height=60
-                )
-        
-            else:
-        
-                ttd_surya = Image(
-                    ttd_kiri,
+            elements.append(
+                Spacer(1,15)
+            )
+            
+            if ttd_kiri and ttd_kanan:
+            
+                if stempel_kiri:
+            
+                    tanda_tangan = PILImage.open(ttd_kiri).convert("RGBA")
+                    stempel = PILImage.open(stempel_kiri).convert("RGBA")
+            
+                    tanda_tangan = tanda_tangan.resize(
+                        (220, 90)
+                    )
+            
+                    stempel = stempel.resize(
+                        (120, 120)
+                    )
+            
+                    kanvas = PILImage.new(
+                        "RGBA",
+                        (240, 130),
+                        (255, 255, 255, 0)
+                    )
+            
+                    kanvas.paste(
+                        tanda_tangan,
+                        (10, 35),
+                        tanda_tangan
+                    )
+            
+                    kanvas.paste(
+                        stempel,
+                        (55, 0),
+                        stempel
+                    )
+            
+                    buffer_ttd_kiri = BytesIO()
+            
+                    kanvas.save(
+                        buffer_ttd_kiri,
+                        format="PNG"
+                    )
+            
+                    buffer_ttd_kiri.seek(0)
+            
+                    ttd_surya = Image(
+                        buffer_ttd_kiri,
+                        width=110,
+                        height=60
+                    )
+            
+                else:
+            
+                    ttd_surya = Image(
+                        ttd_kiri,
+                        width=100,
+                        height=40
+                    )
+            
+                ttd_petugas = Image(
+                    ttd_kanan,
                     width=100,
                     height=40
                 )
-        
-            ttd_petugas = Image(
-                ttd_kanan,
-                width=100,
-                height=40
-            )
-        
-            TTD_WIDTH = 565
-        
-            kiri = Table([
-                [
-                    Paragraph(
-                        "<br/>Mengetahui,<br/>Ketua Tim Karantina Tumbuhan",
-                        style_wrap
-                    )
+            
+                TTD_WIDTH = 565
+            
+                kiri = Table([
+                    [
+                        Paragraph(
+                            "<br/>Mengetahui,<br/>Ketua Tim Karantina Tumbuhan",
+                            style_wrap
+                        )
+                    ],
+            
+                    [Spacer(1,0)],
+            
+                    [ttd_surya],
+            
+                    [Spacer(1,0)],
+            
+                    [
+                        Paragraph(
+                            "<b>Surya Dharma, S.P.</b><br/>NIP. 197705152001121002",
+                            style_wrap
+                        )
+                    ]
+            
                 ],
-        
-                [Spacer(1,0)],
-        
-                [ttd_surya],
-        
-                [Spacer(1,0)],
-        
-                [
-                    Paragraph(
-                        "<b>Surya Dharma, S.P.</b><br/>NIP. 197705152001121002",
-                        style_wrap
-                    )
-                ]
-        
-            ],
-            colWidths=[TTD_WIDTH/2])
-        
-            kanan = Table([
-        
-                [
-                    Paragraph(
-                        f"Pekanbaru, {datetime.now().day} "
-                        f"{bulan[datetime.now().month]} "
-                        f"{datetime.now().year}"
-                        f"<br/><br/>{jabatan}",
-                        style_wrap
-                    )
+                colWidths=[TTD_WIDTH/2])
+            
+                kanan = Table([
+            
+                    [
+                        Paragraph(
+                            f"Pekanbaru, {datetime.now().day} "
+                            f"{bulan[datetime.now().month]} "
+                            f"{datetime.now().year}"
+                            f"<br/><br/>{jabatan}",
+                            style_wrap
+                        )
+                    ],
+            
+                    [Spacer(1,3)],
+            
+                    [ttd_petugas],
+            
+                    [Spacer(1,3)],
+            
+                    [
+                        Paragraph(
+                            f"<b>{nama_lengkap_beserta_gelar}</b><br/>"
+                            f"NIP. {nip_petugas}",
+                            style_wrap
+                        )
+                    ]
+            
                 ],
-        
-                [Spacer(1,3)],
-        
-                [ttd_petugas],
-        
-                [Spacer(1,3)],
-        
-                [
-                    Paragraph(
-                        f"<b>{nama_lengkap_beserta_gelar}</b><br/>"
-                        f"NIP. {nip_petugas}",
-                        style_wrap
-                    )
-                ]
-        
-            ],
-            colWidths=[TTD_WIDTH/2])
-        
-            ttd_table = Table(
-                [["", kiri, "", kanan]],
-                colWidths=[
-                    100,
-                    200,
-                    50,
-                    200
-                ]
-            )
-        
-            ttd_table.setStyle(
-                TableStyle([
-        
-                    ('VALIGN',
-                     (0,0),
-                     (-1,-1),
-                     'TOP'),
-        
-                    ('LEFTPADDING',
-                     (0,0),
-                     (-1,-1),
-                     0),
-        
-                    ('RIGHTPADDING',
-                     (0,0),
-                     (-1,-1),
-                     0),
-        
-                    ('TOPPADDING',
-                     (0,0),
-                     (-1,-1),
-                     0),
-        
-                    ('BOTTOMPADDING',
-                     (0,0),
-                     (-1,-1),
-                     0),
-        
-                    ('ALIGN',
-                     (0,0),
-                     (-1,-1),
-                     'CENTER')
-                ])
-            )
-        
-            elements.append(
-                ttd_table
-            )
+                colWidths=[TTD_WIDTH/2])
+            
+                ttd_table = Table(
+                    [["", kiri, "", kanan]],
+                    colWidths=[
+                        100,
+                        200,
+                        50,
+                        200
+                    ]
+                )
+            
+                ttd_table.setStyle(
+                    TableStyle([
+            
+                        ('VALIGN',
+                         (0,0),
+                         (-1,-1),
+                         'TOP'),
+            
+                        ('LEFTPADDING',
+                         (0,0),
+                         (-1,-1),
+                         0),
+            
+                        ('RIGHTPADDING',
+                         (0,0),
+                         (-1,-1),
+                         0),
+            
+                        ('TOPPADDING',
+                         (0,0),
+                         (-1,-1),
+                         0),
+            
+                        ('BOTTOMPADDING',
+                         (0,0),
+                         (-1,-1),
+                         0),
+            
+                        ('ALIGN',
+                         (0,0),
+                         (-1,-1),
+                         'CENTER')
+                    ])
+                )
+            
+                elements.append(
+                    ttd_table
+                )
 
             # ==========================================
             # BUILD PDF
