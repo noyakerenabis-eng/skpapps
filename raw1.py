@@ -159,31 +159,42 @@ iki = st.sidebar.text_input(
     value=""
 )
 
-ttd_kiri = st.file_uploader(
-    "TTD Ketua Tim",
-    type=["png"]
-)
+kolom_file, kolom_ttd = st.columns(2)
 
-ttd_kanan = st.file_uploader(
-    "TTD Petugas",
-    type=["png"]
-)
-    
-# ==================================================
-# UPLOAD FILE
-# ==================================================
+with kolom_file:
 
-file_penugasan = st.file_uploader(
-    "Upload File Penugasan Periode Ini dan/ Sebelumnya (jika terdapat penugasan diluar periode)",
-    type=["csv"],
-    accept_multiple_files=True
-)
+    st.subheader(
+        "File Laporan"
+    )
 
-file_pelepasan = st.file_uploader(
-    "Upload File Pelepasan (maksimal 3 file)",
-    type=["csv"],
-    accept_multiple_files=True
-)
+    file_penugasan = st.file_uploader(
+        "Upload File Penugasan Periode Ini dan/ Sebelumnya (jika terdapat penugasan diluar periode)",
+        type=["csv"],
+        accept_multiple_files=True
+    )
+
+    file_pelepasan = st.file_uploader(
+        "Upload File Pelepasan (maksimal 3 file)",
+        type=["csv"],
+        accept_multiple_files=True
+    )
+
+with kolom_ttd:
+
+    st.subheader(
+        "Tanda Tangan"
+    )
+
+    ttd_kiri = st.file_uploader(
+        "TTD Ketua Tim",
+        type=["png"]
+    )
+
+    ttd_kanan = st.file_uploader(
+        "TTD Petugas",
+        type=["png"]
+    )
+
 
 if file_pelepasan and len(file_pelepasan) > 3:
 
