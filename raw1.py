@@ -540,46 +540,7 @@ if file_penugasan and file_pelepasan:
         # ==========================================
 
         if st.button("Generate PDF"):
-
-            # generate pdf
-            st.session_state.pdf_bytes = pdf_bytes
-        
-        # -----------------------------
-        # TAMPILKAN SETELAH PDF ADA
-        # -----------------------------
-        if st.session_state.get("pdf_bytes"):
-        
-            col_preview, col_download = st.columns(2)
-        
-            with col_preview:
-                if st.button("Preview PDF"):
-                    st.session_state.show_preview = True
-        
-            with col_download:
-                st.download_button(
-                    "Download PDF",
-                    data=st.session_state.pdf_bytes,
-                    file_name="laporan.pdf",
-                    mime="application/pdf"
-                )
-        
-            if st.session_state.get("show_preview", False):
-        
-                pdf_base64 = base64.b64encode(
-                    st.session_state.pdf_bytes
-                ).decode()
-        
-                st.markdown(
-                    f"""
-                    <iframe
-                        src="data:application/pdf;base64,{pdf_base64}"
-                        width="100%"
-                        height="700">
-                    </iframe>
-                    """,
-                    unsafe_allow_html=True
-                )
-
+    
             hasil = []
 
             nomor_urut = 1
