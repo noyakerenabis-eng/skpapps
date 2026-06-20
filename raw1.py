@@ -1246,7 +1246,7 @@ if file_penugasan and file_pelepasan:
                 baris_tanggal = Table(
                     [["", "", tanggal_kanan]],
                     colWidths=[
-                        150,
+                        200,
                         50,
                         200
                     ]
