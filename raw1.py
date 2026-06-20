@@ -191,12 +191,7 @@ with kolom_ttd:
         "TTD Ketua Tim",
         type=["png"]
     )
-
-    stempel_kiri = st.file_uploader(
-        "Stempel Ketua Tim",
-        type=["png"]
-    )
-    
+  
     ttd_kanan = st.file_uploader(
         "TTD Petugas",
         type=["png"]
@@ -1105,10 +1100,10 @@ if file_penugasan and file_pelepasan:
             
             if ttd_kiri and ttd_kanan:
             
-                if stempel_kiri:
+                if STEMPEL_PATH:
             
                     tanda_tangan = PILImage.open(ttd_kiri).convert("RGBA")
-                    stempel = PILImage.open(stempel_kiri).convert("RGBA")
+                    stempel = PILImage.open(STEMPEL_PATH).convert("RGBA")
             
                     tanda_tangan = tanda_tangan.resize(
                         (220, 90)
