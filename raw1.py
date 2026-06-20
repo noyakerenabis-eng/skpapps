@@ -1334,20 +1334,20 @@ if file_penugasan and file_pelepasan:
         # -----------------------------
         # TAMPILKAN SETELAH PDF ADA
         # -----------------------------
-       if st.session_state.get("pdf_bytes"):
-
-           if st.button("Preview PDF"):
-               st.session_state.show_preview = True
-        
-           if st.session_state.get("show_preview", False):
-               pdf_viewer(st.session_state.pdf_bytes)
-        
-           st.download_button(
-               "Download PDF",
-               data=st.session_state.pdf_bytes,
-               file_name="laporan.pdf",
-               mime="application/pdf"
-           )
+        if st.session_state.get("pdf_bytes"):
+    
+            if st.button("Preview PDF"):
+                st.session_state.show_preview = True
+    
+            if st.session_state.get("show_preview", False):
+                pdf_viewer(st.session_state.pdf_bytes)
+    
+            st.download_button(
+                "Download PDF",
+                data=st.session_state.pdf_bytes,
+                file_name="laporan.pdf",
+                mime="application/pdf"
+            )
     except Exception as e:
 
         st.error(
