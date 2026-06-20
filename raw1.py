@@ -1195,7 +1195,7 @@ if file_penugasan and file_pelepasan:
                     [
                         Paragraph(
                             jabatan,
-                            syle_wrap
+                            style_wrap
                         )
                     ],
 
