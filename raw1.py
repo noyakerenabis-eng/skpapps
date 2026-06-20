@@ -190,6 +190,22 @@ jabatan = st.sidebar.text_input(
     value="Analis Perkarantinaan Tumbuhan Ahli Pertama"
 )
 
+kata_jabatan = jabatan.split()
+
+if len(kata_jabatan) >= 3:
+
+    jabatan_ttd = (
+        kata_jabatan[0][0]
+        + kata_jabatan[1][0]
+        + kata_jabatan[2][0]
+        + " "
+        + " ".join(kata_jabatan[3:])
+    )
+
+else:
+
+    jabatan_ttd = jabatan
+
 unit = st.sidebar.text_input(
     "Unit Kerja",
     value="Balai Karantina Hewan, Ikan dan Tumbuhan Riau"
@@ -935,7 +951,7 @@ if file_penugasan and file_pelepasan:
                 )
 
             ]]
-                        # ==========================================
+            # ==========================================
             # ISI TABEL
             # ==========================================
 
@@ -1194,7 +1210,7 @@ if file_penugasan and file_pelepasan:
                     [Spacer(1,10)],
                     [
                         Paragraph(
-                            jabatan,
+                            jabatan_ttd,
                             style_wrap
                         )
                     ],
