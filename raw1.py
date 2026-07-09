@@ -37,7 +37,7 @@ st.set_page_config(
 )
 
 HEADER_IMAGE = "Header.png"  # Ganti dengan path gambar header Anda
-STEMPEL_PATH = "Stempel.png"
+STEMPEL_PATH = "Stempel.png" 
 
 # ==================================================
 # STYLE PDF
@@ -540,7 +540,26 @@ if file_penugasan and file_pelepasan:
         # GENERATE DATAFRAME
         # ==========================================
 
-        if st.button("Generate PDF"):
+        col1, col2 = st.columns(2)
+
+        with col1:
+            generate_apt = st.button("📄 Generate APT")
+
+        with col2:
+            generate_pkt = st.button("📄 Generate PKT")
+        
+       # Simpan status generate
+        if generate_apt:
+            st.session_state.generated = True
+            st.session_state.format_laporan = "APT"
+
+        if generate_pkt:
+            st.session_state.generated = True
+            st.session_state.format_laporan = "PKT"
+
+        if st.session_state.get("generated", False):
+
+            format_laporan = st.session_state.format_laporan
     
             hasil = []
 
@@ -559,7 +578,7 @@ if file_penugasan and file_pelepasan:
                 ]
 
                 nomor_dok_hasil = grup.iloc[0][
-                    "Nomor Dokumen"
+                    "No. K.1.1"
                 ]
 
                 nomor_permohonan = str(nomor)
@@ -580,7 +599,7 @@ if file_penugasan and file_pelepasan:
                     tujuan = "-"
 
                 komoditas = ", ".join(
-                    grup["Komoditas"]
+                    grup["Nama Tercetak"]
                     .dropna()
                     .astype(str)
                     .unique()
@@ -629,6 +648,9 @@ if file_penugasan and file_pelepasan:
                     komoditas,
                     tujuan,
                     nomor_seri,
+                    grup.iloc[0]["Vol P1"],
+                    grup.iloc[0]["Satuan Lain"],
+                    grup.iloc[0]["Dokumen Pendukung"],
                     administrasi,
                     kesehatan,
                     kesimpulan
@@ -647,6 +669,9 @@ if file_penugasan and file_pelepasan:
                     "Komoditas",
                     "Tujuan",
                     "Nomor Seri",
+                    "Jumlah",
+                    "Satuan",
+                    "Dokumen Pendukung",
                     "Administrasi",
                     "Kesehatan",
                     "Kesimpulan"
@@ -673,7 +698,8 @@ if file_penugasan and file_pelepasan:
                 df_hasil,
                 use_container_width=True
             )
-                        # ==========================================
+            
+            # ==========================================
             # DATA UNTUK PDF
             # ==========================================
 
@@ -924,6 +950,7 @@ if file_penugasan and file_pelepasan:
                 Spacer(1,5)
             )
 
+        if format_laporan == "APT":
             # ==========================================
             # HEADER TABEL
             # ==========================================
@@ -991,19 +1018,19 @@ if file_penugasan and file_pelepasan:
                     [
                         Paragraph("<b>Hasil Administrasi</b>", style_wrap),
                         ":",
-                        Paragraph(str(row[8]), style_wrap)
+                        Paragraph(str(row[11]), style_wrap)
                     ],
 
                     [
                         Paragraph("<b>Hasil Kesehatan</b>", style_wrap),
                         ":",
-                        Paragraph(str(row[9]), style_wrap)
+                        Paragraph(str(row[12]), style_wrap)
                     ],
 
                     [
                         Paragraph("<b>Kesimpulan</b>", style_wrap),
                         ":",
-                        Paragraph(str(row[10]), style_wrap)
+                        Paragraph(str(row[13]), style_wrap)
                     ]
 
                 ],
@@ -1162,186 +1189,386 @@ if file_penugasan and file_pelepasan:
             elements.append(
                 tabel
             )
+        else:
+            # ==========================================
+            # TABEL PKT
+            # ==========================================
 
+            data_tabel = [[
+
+                Paragraph("<b>No</b>", style_wrap),
+
+                Paragraph("<b>Waktu<br/>Pelaksanaan</b>", style_wrap),
+
+                Paragraph("<b>Tempat<br/>Pelaksanaan</b>", style_wrap),
+
+                Paragraph("<b>Nomor Surat Tugas</b>", style_wrap),
+
+                Paragraph("<b>Hasil Kegiatan</b>", style_wrap),
+
+                Paragraph("<b>Hasil Pemeriksaan</b>", style_wrap)
+
+            ]]
+
+            # ==========================================
+            # ISI DATA
+            # ==========================================
+            for row in rows:
+                # ==============================
+                # TABEL DOKUMEN PENDUKUNG (NESTED)
+                # ==============================
+
+                daftar_dokumen = [
+                    d.strip()
+                    for d in str(row[10]).split(";")
+                    if d.strip()
+                ]
+
+                isi_dokumen = []
+
+                for dok in daftar_dokumen:
+                    isi_dokumen.append([
+                        Paragraph(dok, style_wrap)
+                    ])
+
+                tabel_dokumen = Table(
+                    isi_dokumen,
+                    colWidths=[130]
+                )
+
+                tabel_dokumen.setStyle(TableStyle([
+
+                    ("GRID",(0,0),(-1,-1),0,colors.white),
+
+                    ("LEFTPADDING",(0,0),(-1,-1),0),
+                    ("RIGHTPADDING",(0,0),(-1,-1),0),
+                    ("TOPPADDING",(0,0),(-1,-1),0),
+                    ("BOTTOMPADDING",(0,0),(-1,-1),2),
+
+                    ("VALIGN",(0,0),(-1,-1),"TOP")
+
+                ]))
+
+                hasil_kegiatan = Table(
+
+                    [
+
+                        [
+                            Paragraph("<b>Komoditas</b>", style_wrap),
+                            ":",
+                            Paragraph(str(row[5]), style_wrap)
+                        ],
+
+                        [
+                            Paragraph("<b>Jumlah</b>", style_wrap),
+                            ":",
+                            Paragraph(str(row[8]), style_wrap)
+                        ],
+
+                        [
+                            Paragraph("<b>Satuan</b>", style_wrap),
+                            ":",
+                            Paragraph(str(row[9]), style_wrap)
+                        ],
+
+                        [
+                            Paragraph("<b>Negara Tujuan</b>", style_wrap),
+                            ":",
+                            Paragraph(str(row[6]), style_wrap)
+                        ],
+
+                        [
+                            Paragraph("<b>Dokumen Pendukung</b>", style_wrap),
+                            ":",
+                            tabel_dokumen
+                        ]
+
+                    ],
+
+                    colWidths=[70,8,135]
+
+                    )
+
+                hasil_kegiatan.setStyle(TableStyle([
+
+                    ("VALIGN",(0,0),(-1,-1),"TOP"),
+
+                    ("LEFTPADDING",(0,0),(-1,-1),0),
+
+                    ("RIGHTPADDING",(0,0),(-1,-1),0),
+
+                    ("TOPPADDING",(0,0),(-1,-1),0),
+
+                    ("BOTTOMPADDING",(0,0),(-1,-1),0)
+
+                ]))
+
+                hasil_pemeriksaan = Paragraph(
+
+                    "Dilakukan pembebasan "
+                    "(Pemeriksaan administratif dan pemeriksaan kesehatan sesuai dengan persyaratan karantina)",
+                    
+                    style_wrap
+
+                )
+
+                data_tabel.append([
+
+                    Paragraph(str(row[0]), style_wrap),
+
+                    Paragraph(str(row[1])[:10], style_wrap),
+
+                    Paragraph(str(row[2]), style_wrap),
+
+                    Paragraph(str(row[4]), style_wrap),
+
+                    hasil_kegiatan,
+
+                    hasil_pemeriksaan
+
+                ])
             
             # ==========================================
-            # TTD
+            # TOTAL
             # ==========================================
+
+            data_tabel.append([
+
+                Paragraph("<b>Jumlah Sertifikat</b>", style_wrap),
+
+                "",
+
+                "",
+
+                "",
+
+                "",
+
+                Paragraph(f"<b>{len(rows)}</b>", style_wrap)
+
+            ])
+
+            # ==========================================
+            # TABEL
+            # ==========================================
+
+            tabel = Table(
+                data_tabel,
+                colWidths=[
+                    25,
+                    65,
+                    70,
+                    70,
+                    220,
+                    105
+                ]
+            )
+            tabel.setStyle(TableStyle([
+
+                ("GRID",(0,0),(-1,-1),0.5,colors.black),
+
+                ("BACKGROUND",(0,0),(-1,0),colors.HexColor("#E6E6E6")),
+
+                ("FONTNAME",(0,0),(-1,0),"Helvetica-Bold"),
+
+                ("ALIGN",(0,0),(-1,0),"CENTER"),
+
+                ("VALIGN",(0,0),(-1,0),"MIDDLE"),
+
+                ("VALIGN",(0,1),(-1,-1),"TOP"),
+
+                ("SPAN",(0,-1),(4,-1)),
+
+                ("ALIGN",(0,-1),(4,-1),"CENTER"),
+
+                ("FONTNAME",(0,-1),(-1,-1),"Helvetica-Bold"),
+
+                ("BACKGROUND",(0,-1),(-1,-1),colors.HexColor("#F2F2F2"))
+
+            ]))
+
+            elements.append(tabel)
+            
+        # ==========================================
+        # TTD
+        # ==========================================
+
+        elements.append(
+            Spacer(1,15)
+        )
+        
+        if ttd_kiri and ttd_kanan:
+        
+            ttd_surya = Image(
+                ttd_kiri,
+                width=100,
+                height=40
+            )
+            ttd_petugas = Image(
+                ttd_kanan,
+                width=100,
+                height=40
+            )
+                        
+            TTD_WIDTH = 565
+        
+            kiri = Table([
+                [
+                    Paragraph(
+                        "<br/>Mengetahui,<br/>Ketua Tim Karantina Tumbuhan",
+                        style_wrap
+                    )
+                ],
+        
+                [Spacer(1,0)],
+        
+                [ttd_surya],   # sekarang stempel + tanda tangan kiri jadi satu blok
+        
+                [Spacer(1,0)],
+        
+                [
+                    Paragraph(
+                        "<b>Surya Dharma, S.P.</b><br/>NIP. 197705152001121002",
+                        style_wrap
+                    )
+                ]
+        
+            ],
+            colWidths=[TTD_WIDTH/2])
+
+            kanan = Table([
+                [Spacer(1,10)],
+                [
+                    Paragraph(
+                        jabatan_ttd,
+                        style_wrap
+                    )
+                ],
+
+                [Spacer(1,3)],
+
+                [ttd_petugas],
+
+                [Spacer(1,0)],
+
+                [
+                    Paragraph(
+                        f"<b>{nama_lengkap_beserta_gelar}</b><br/>"
+                        f"NIP. {nip_petugas}",
+                        style_wrap
+                    )
+                ]
+
+            ],
+            colWidths=[TTD_WIDTH/2])
+            tanggal_kanan = Paragraph(
+                f"Pekanbaru, {datetime.now().day} "
+                f"{bulan[datetime.now().month]} "
+                f"{datetime.now().year}",
+                style_wrap
+            )
+            
+            baris_tanggal = Table(
+                [["", "", tanggal_kanan]],
+                colWidths=[
+                    215,
+                    50,
+                    200
+                ]
+            )
+            
+            elements.append(
+                baris_tanggal
+            )
+            
+            elements.append(
+                Spacer(1,0)
+            )
+            ttd_table = Table(
+                [["", kiri, "", kanan]],
+                colWidths=[
+                    100,
+                    200,
+                    50,
+                    200
+                ]
+            )
+
+            ttd_table.setStyle(
+                TableStyle([
+
+                    ('VALIGN',
+                        (0,0),
+                        (-1,-1),
+                        'TOP'),
+
+                    ('LEFTPADDING',
+                        (0,0),
+                        (-1,-1),
+                        0),
+
+                    ('RIGHTPADDING',
+                        (0,0),
+                        (-1,-1),
+                        0),
+
+                    ('TOPPADDING',
+                        (0,0),
+                        (-1,-1),
+                        0),
+
+                    ('BOTTOMPADDING',
+                        (0,0),
+                        (-1,-1),
+                        0),
+
+                    ('ALIGN',
+                        (0,0),
+                        (-1,-1),
+                        'CENTER')
+                ])
+            )
 
             elements.append(
-                Spacer(1,15)
-            )
-          
-            if ttd_kiri and ttd_kanan:
-            
-                ttd_surya = Image(
-                    ttd_kiri,
-                    width=100,
-                    height=40
-                )
-                ttd_petugas = Image(
-                    ttd_kanan,
-                    width=100,
-                    height=40
-                )
-                            
-                TTD_WIDTH = 565
-            
-                kiri = Table([
-                    [
-                        Paragraph(
-                            "<br/>Mengetahui,<br/>Ketua Tim Karantina Tumbuhan",
-                            style_wrap
-                        )
-                    ],
-            
-                    [Spacer(1,0)],
-            
-                    [ttd_surya],   # sekarang stempel + tanda tangan kiri jadi satu blok
-            
-                    [Spacer(1,0)],
-            
-                    [
-                        Paragraph(
-                            "<b>Surya Dharma, S.P.</b><br/>NIP. 197705152001121002",
-                            style_wrap
-                        )
-                    ]
-            
-                ],
-                colWidths=[TTD_WIDTH/2])
-
-                kanan = Table([
-                    [Spacer(1,10)],
-                    [
-                        Paragraph(
-                            jabatan_ttd,
-                            style_wrap
-                        )
-                    ],
-
-                    [Spacer(1,3)],
-
-                    [ttd_petugas],
-
-                    [Spacer(1,0)],
-
-                    [
-                        Paragraph(
-                            f"<b>{nama_lengkap_beserta_gelar}</b><br/>"
-                            f"NIP. {nip_petugas}",
-                            style_wrap
-                        )
-                    ]
-
-                ],
-                colWidths=[TTD_WIDTH/2])
-                tanggal_kanan = Paragraph(
-                    f"Pekanbaru, {datetime.now().day} "
-                    f"{bulan[datetime.now().month]} "
-                    f"{datetime.now().year}",
-                    style_wrap
-                )
-                
-                baris_tanggal = Table(
-                    [["", "", tanggal_kanan]],
-                    colWidths=[
-                        215,
-                        50,
-                        200
-                    ]
-                )
-                
-                elements.append(
-                    baris_tanggal
-                )
-                
-                elements.append(
-                    Spacer(1,0)
-                )
-                ttd_table = Table(
-                    [["", kiri, "", kanan]],
-                    colWidths=[
-                        100,
-                        200,
-                        50,
-                        200
-                    ]
-                )
-
-                ttd_table.setStyle(
-                    TableStyle([
-
-                        ('VALIGN',
-                         (0,0),
-                         (-1,-1),
-                         'TOP'),
-
-                        ('LEFTPADDING',
-                         (0,0),
-                         (-1,-1),
-                         0),
-
-                        ('RIGHTPADDING',
-                         (0,0),
-                         (-1,-1),
-                         0),
-
-                        ('TOPPADDING',
-                         (0,0),
-                         (-1,-1),
-                         0),
-
-                        ('BOTTOMPADDING',
-                         (0,0),
-                         (-1,-1),
-                         0),
-
-                        ('ALIGN',
-                         (0,0),
-                         (-1,-1),
-                         'CENTER')
-                    ])
-                )
-
-                elements.append(
-                    ttd_table
-                )
-
-
-
-            # ==========================================
-            # BUILD PDF
-            # ==========================================
-
-            pdf.build(elements)
-            buffer.seek(0)
-            buffer = tambah_stempel_dekat_ketua_tim(
-                buffer,
-                STEMPEL_PATH
+                ttd_table
             )
 
-            st.success(
-                "PDF berhasil dibuat"
-            )
 
-            st.session_state.pdf_bytes = buffer.getvalue()
+
+        # ==========================================
+        # BUILD PDF
+        # ==========================================
+
+        pdf.build(elements)
+        buffer.seek(0)
+        buffer = tambah_stempel_dekat_ketua_tim(
+            buffer,
+            STEMPEL_PATH
+        )
+
+        st.success(
+            "PDF berhasil dibuat"
+        )
+
+        st.session_state.pdf_bytes = buffer.getvalue()
+        if "show_preview" not in st.session_state:
+            st.write("show_preview =", st.session_state.get("show_preview"))
             st.session_state.show_preview = False
 
-            st.success(
-                "PDF berhasil dibuat. Klik Preview PDF untuk melihat sebelum download."
-            )
+        st.success(
+            "PDF berhasil dibuat. Klik Preview PDF untuk melihat sebelum download."
+        )
         # -----------------------------
         # TAMPILKAN SETELAH PDF ADA
         # -----------------------------
         if st.session_state.get("pdf_bytes"):
-    
+
             if st.button("Preview PDF"):
                 st.session_state.show_preview = True
-    
+
             if st.session_state.get("show_preview", False):
                 pdf_viewer(st.session_state.pdf_bytes)
-    
+
             st.download_button(
                 "Download PDF",
                 data=st.session_state.pdf_bytes,
@@ -1353,5 +1580,4 @@ if file_penugasan and file_pelepasan:
         st.error(
             f"Terjadi kesalahan: {e}"
         )
-      
-
+        
