@@ -47,9 +47,10 @@ styles = getSampleStyleSheet()
 
 style_wrap = ParagraphStyle(
     name="WrapStyle",
-    parent=styles["BodyText"],
-    fontSize=8,
-    leading=10
+    parent=styles["Normal"],
+    fontName="Helvetica",
+    fontSize=9,
+    leading=11
 )
 
 style_judul = ParagraphStyle(
