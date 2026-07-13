@@ -860,15 +860,15 @@ if file_penugasan and file_pelepasan:
                 ],
                 [
                     "4.",
-                    "Rencana Aksi",
+                    Paragraph("Rencana Aksi", style_wrap),
                     ":",
-                    ra
+                    Paragraph(ra, style_wrap)
                 ],
                 [
                     "5.",
-                    "Indikator Kinerja Individu",
+                    Paragraph("Indikator Kinerja Individu", style_wrap),
                     ":",
-                    iki
+                    Paragraph(iki, style_wrap)
                 ],
                 [
                     "6.",
