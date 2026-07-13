@@ -1357,10 +1357,10 @@ if file_penugasan and file_pelepasan:
                 data_tabel,
                 colWidths=[
                     25,
-                    65,
+                    68,
                     70,
                     70,
-                    220,
+                    217,
                     105
                 ]
             )
