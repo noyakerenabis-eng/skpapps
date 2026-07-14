@@ -1124,10 +1124,10 @@ if file_penugasan and file_pelepasan:
                 data_tabel,
                 colWidths=[
                     28,
-                    65,
+                    68,
                     85,
                     80,
-                    275
+                    272
                 ]
             )
 
@@ -1148,7 +1148,7 @@ if file_penugasan and file_pelepasan:
                     ('FONTNAME',
                      (0,0),
                      (-1,0),
-                     'Helvetica-Bold'),
+                     'normal'),
 
                     ('ALIGN',
                      (0,0),
