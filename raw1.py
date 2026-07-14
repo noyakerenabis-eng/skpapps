@@ -1148,7 +1148,7 @@ if file_penugasan and file_pelepasan:
                     ('FONTNAME',
                      (0,0),
                      (-1,0),
-                     'normal'),
+                     'Helvetica-Bold'),
 
                     ('ALIGN',
                      (0,0),
