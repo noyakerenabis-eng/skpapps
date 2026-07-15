@@ -579,7 +579,7 @@ if file_penugasan and file_pelepasan:
                 ]
 
                 nomor_dok_hasil = grup.iloc[0][
-                    "No. K.1.1"
+                    "Nomor Dokumen"
                 ]
 
                 nomor_permohonan = str(nomor)
