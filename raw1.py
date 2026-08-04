@@ -421,19 +421,40 @@ if file_penugasan and file_pelepasan:
 
         list_df = []
 
+        def baca_pelepasan_excel(file):
+
+            # Baca semua baris tanpa header
+            raw = pd.read_excel(file, header=None)
+        
+            header_idx = None
+        
+            # Cari baris yang berisi "No. K.1.1"
+            for i in range(len(raw)):
+                if "No. K.1.1" in raw.iloc[i].astype(str).tolist():
+                    header_idx = i
+                    break
+        
+            if header_idx is None:
+                raise Exception("Header 'No. K.1.1' tidak ditemukan.")
+        
+            # Baca ulang dengan header yang benar
+            df = pd.read_excel(file, header=header_idx)
+        
+            # Bersihkan nama kolom
+            df.columns = df.columns.astype(str).str.strip()
+        
+            # Hapus baris kosong
+            df = df.dropna(how="all")
+        
+            return df
+        
+        
+        list_df = []
+        
         for file in file_pelepasan:
-            try:
-                # baca Excel dari bytes upload
-                df_tmp = pd.read_excel(BytesIO(file.getvalue()))
-            except Exception:
-                # fallback: jika bukan Excel atau gagal, coba pakai fungsi baca_laporan (CSV/TSV)
-                try:
-                    df_tmp = baca_laporan(file)
-                except Exception as e:
-                    raise Exception(f"Gagal membaca file pelepasan: {e}")
-
+            df_tmp = baca_pelepasan_excel(file)
             list_df.append(df_tmp)
-
+        
         df_pelepasan = pd.concat(
             list_df,
             ignore_index=True
