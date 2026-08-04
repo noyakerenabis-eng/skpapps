@@ -631,7 +631,7 @@ if file_penugasan and file_pelepasan:
                 nomor_permohonan = str(nomor)
 
                 if "-T1." in nomor_permohonan:
-                    tujuan = grup.iloc[0]["Tujuan"]
+                    tujuan = grup.iloc[0]["Negara Tujuan"]
 
                 elif "-T2." in nomor_permohonan:
                     tujuan = grup.iloc[0]["Asal"]
