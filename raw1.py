@@ -251,9 +251,10 @@ with kolom_file:
         accept_multiple_files=True
     )
 
+    # Ubah uploader pelepasan menjadi menerima Excel (.xlsx, .xls)
     file_pelepasan = st.file_uploader(
         "Upload File Pelepasan (maksimal 3 file)",
-        type=["csv"],
+        type=["xlsx", "xls"],
         accept_multiple_files=True
     )
 
@@ -404,8 +405,15 @@ if file_penugasan and file_pelepasan:
         list_df = []
 
         for file in file_pelepasan:
-
-            df_tmp = baca_laporan(file)
+            try:
+                # baca Excel dari bytes upload
+                df_tmp = pd.read_excel(BytesIO(file.getvalue()))
+            except Exception:
+                # fallback: jika bukan Excel atau gagal, coba pakai fungsi baca_laporan (CSV)
+                try:
+                    df_tmp = baca_laporan(file)
+                except Exception as e:
+                    raise Exception(f"Gagal membaca file pelepasan: {e}")
 
             list_df.append(df_tmp)
 
@@ -1581,4 +1589,3 @@ if file_penugasan and file_pelepasan:
         st.error(
             f"Terjadi kesalahan: {e}"
         )
-        
