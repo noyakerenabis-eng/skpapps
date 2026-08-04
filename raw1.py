@@ -1,3 +1,4 @@
+import re
 import streamlit as st
 import pandas as pd
 import fitz
@@ -77,7 +78,11 @@ style_sub_judul = ParagraphStyle(
 # ==================================================
 
 def baca_laporan(file):
-
+    """
+    Baca file teks/CSV yang mungkin memiliki delimiter koma, tab, atau titik-koma.
+    Mencari header baris yang kolom pertamanya mengandung 'No.' atau variasinya.
+    Setelah menemukan header, baca dengan pandas (auto-detect delimiter).
+    """
     isi = file.getvalue().decode(
         "utf-8",
         errors="ignore"
@@ -86,27 +91,39 @@ def baca_laporan(file):
     baris = isi.splitlines()
 
     header_idx = None
+    header_line = None
 
     for i, line in enumerate(baris):
+        # Hilangkan BOM dan spasi di awal/akhir
+        l = line.lstrip("\ufeff").strip()
+        if not l:
+            continue
 
-        if line.startswith('No.,') or line.startswith('No.,"'):
+        # Pisahkan berdasarkan delimiter umum untuk ambil token pertama
+        tokens = re.split(r'[,\t;]', l)
+        first = tokens[0].strip() if tokens else ""
 
+        # Cek apakah token pertama adalah header "No." atau variasinya
+        if first.lower().startswith("no.") or first.lower() == "no":
             header_idx = i
+            header_line = l
             break
 
     if header_idx is None:
+        raise Exception("Header tabel tidak ditemukan")
 
-        raise Exception(
-            "Header tabel tidak ditemukan"
-        )
+    # Ambil teks mulai dari header ditemukan (termasuk header)
+    csv_bersih = "\n".join(baris[header_idx:])
 
-    csv_bersih = "\n".join(
-        baris[header_idx:]
-    )
-
-    df = pd.read_csv(
-        StringIO(csv_bersih)
-    )
+    # Gunakan pandas untuk membaca, biarkan engine python menebak delimiter (sep=None)
+    try:
+        df = pd.read_csv(StringIO(csv_bersih), sep=None, engine="python")
+    except Exception as e:
+        # Jika gagal, coba baca manual dengan delimiter tab sebagai fallback
+        try:
+            df = pd.read_csv(StringIO(csv_bersih), sep="\t", engine="python")
+        except Exception:
+            raise Exception(f"Gagal membaca sebagai CSV/TSV: {e}")
 
     return df
     
@@ -409,7 +426,7 @@ if file_penugasan and file_pelepasan:
                 # baca Excel dari bytes upload
                 df_tmp = pd.read_excel(BytesIO(file.getvalue()))
             except Exception:
-                # fallback: jika bukan Excel atau gagal, coba pakai fungsi baca_laporan (CSV)
+                # fallback: jika bukan Excel atau gagal, coba pakai fungsi baca_laporan (CSV/TSV)
                 try:
                     df_tmp = baca_laporan(file)
                 except Exception as e:
