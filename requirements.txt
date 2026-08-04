@@ -3,3 +3,5 @@ pandas
 reportlab
 PyMuPDF
 streamlit-pdf-viewer
+Pillow
+openpyxl
