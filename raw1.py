@@ -94,3 +94,1580 @@ def baca_laporan(file):
     header_line = None
 
     for i, line in enumerate(baris):
+        # Hilangkan BOM dan spasi di awal/akhir
+        l = line.lstrip("\ufeff").strip()
+        if not l:
+            continue
+
+        # Pisahkan berdasarkan delimiter umum untuk ambil token pertama
+        tokens = re.split(r'[,\t;]', l)
+        first = tokens[0].strip() if tokens else ""
+
+        # Cek apakah token pertama adalah header "No." atau variasinya
+        if first.lower().startswith("no.") or first.lower() == "no":
+            header_idx = i
+            header_line = l
+            break
+
+    if header_idx is None:
+        raise Exception("Header tabel tidak ditemukan")
+
+    # Ambil teks mulai dari header ditemukan (termasuk header)
+    csv_bersih = "\n".join(baris[header_idx:])
+
+    # Gunakan pandas untuk membaca, biarkan engine python menebak delimiter (sep=None)
+    try:
+        df = pd.read_csv(StringIO(csv_bersih), sep=None, engine="python")
+    except Exception as e:
+        # Jika gagal, coba baca manual dengan delimiter tab sebagai fallback
+        try:
+            df = pd.read_csv(StringIO(csv_bersih), sep="\t", engine="python")
+        except Exception:
+            raise Exception(f"Gagal membaca sebagai CSV/TSV: {e}")
+
+    return df
+    
+def tambah_stempel_dekat_ketua_tim(pdf_buffer, stempel_path):
+
+    pdf_buffer.seek(0)
+
+    doc = fitz.open(
+        stream=pdf_buffer.read(),
+        filetype="pdf"
+    )
+
+    halaman = doc[-1]
+
+    hasil_cari = halaman.search_for(
+        "Ketua Tim"
+    )
+
+    if not hasil_cari:
+
+        pdf_buffer.seek(0)
+        return pdf_buffer
+
+    posisi = hasil_cari[-1]
+
+    x = posisi.x0 - 45
+    y = posisi.y1 - 10
+
+    ukuran = 85
+
+    kotak_stempel = fitz.Rect(
+        x,
+        y,
+        x + ukuran,
+        y + ukuran
+    )
+
+    halaman.insert_image(
+        kotak_stempel,
+        filename=stempel_path,
+        overlay=True
+    )
+
+    hasil_buffer = BytesIO()
+
+    doc.save(
+        hasil_buffer
+    )
+
+    doc.close()
+
+    hasil_buffer.seek(0)
+
+    return hasil_buffer
+# ==================================================
+# JUDUL
+# ==================================================
+
+st.title(
+    "Generator Laporan Karantina"
+)
+if "pdf_bytes" not in st.session_state:
+    st.session_state.pdf_bytes = None
+
+if "show_preview" not in st.session_state:
+    st.session_state.show_preview = False
+st.warning(
+    "Sebelum generate PDF, isi dulu data identitas dan informasi laporan melalui sidebar."
+)
+
+# ==================================================
+# IDENTITAS
+# ==================================================
+
+st.sidebar.header(
+    "Identitas Pegawai"
+)
+nama_lengkap_beserta_gelar = st.sidebar.text_input(
+    "Nama Lengkap Beserta Gelar",
+    value=""
+)
+pangkat = st.sidebar.text_input(
+    "Pangkat/Golongan/TMT",
+    value=""
+)
+
+jabatan = st.sidebar.text_input(
+    "Jabatan",
+    value="Analis Perkarantinaan Tumbuhan Ahli Pertama"
+)
+
+kata_jabatan = jabatan.split()
+
+if len(kata_jabatan) >= 3:
+
+    jabatan_ttd = (
+        kata_jabatan[0][0]
+        + kata_jabatan[1][0]
+        + kata_jabatan[2][0]
+        + " "
+        + " ".join(kata_jabatan[3:])
+    )
+
+else:
+
+    jabatan_ttd = jabatan
+
+unit = st.sidebar.text_input(
+    "Unit Kerja",
+    value="Balai Karantina Hewan, Ikan dan Tumbuhan Riau"
+)
+
+dasar = st.sidebar.text_area(
+    "Dasar Pelaksanaan",
+    height=100
+)
+
+rhk = st.sidebar.text_input(
+    "Rencana Hasil Kerja",
+    value=""
+)
+ra = st.sidebar.text_input(
+    "Rencana Aksi",
+    value=""
+)
+iki = st.sidebar.text_input(
+    "Indikator Kerja Individu",
+    value=""
+)
+
+kolom_file, kolom_ttd = st.columns(2)
+
+with kolom_file:
+
+    st.subheader(
+        "File Laporan"
+    )
+
+    file_penugasan = st.file_uploader(
+        "Upload File Penugasan Periode Ini dan/ Sebelumnya (jika terdapat penugasan diluar periode)",
+        type=["csv"],
+        accept_multiple_files=True
+    )
+
+    # Ubah uploader pelepasan menjadi menerima Excel (.xlsx, .xls)
+    file_pelepasan = st.file_uploader(
+        "Upload File Pelepasan (maksimal 3 file)",
+        type=["xlsx", "xls"],
+        accept_multiple_files=True
+    )
+
+with kolom_ttd:
+
+    st.subheader(
+        "Tanda Tangan"
+    )
+
+    ttd_kiri = st.file_uploader(
+        "TTD Ketua Tim",
+        type=["png"]
+    )
+  
+    ttd_kanan = st.file_uploader(
+        "TTD Petugas",
+        type=["png"]
+    )
+
+
+if file_pelepasan and len(file_pelepasan) > 3:
+
+    st.error(
+        "Maksimal 3 file pelepasan"
+    )
+
+    st.stop()
+
+# ==================================================
+# PROSES
+# ==================================================
+
+if file_penugasan and file_pelepasan:
+    try:
+
+        # ==========================================
+        # BACA PENUGASAN
+        # ==========================================
+        list_df_penugasan = []
+        
+        for file in file_penugasan:
+        
+            df_tmp = baca_laporan(file)
+        
+            list_df_penugasan.append(df_tmp)
+        
+        df_penugasan = pd.concat(
+            list_df_penugasan,
+            ignore_index=True
+        )
+       
+        if "No Permohonan" not in df_penugasan.columns:
+
+            st.error(
+               "Kolom No Permohonan tidak ditemukan"
+            )
+            st.stop()
+        if "Jenis Tugas" not in df_penugasan.columns:
+            st.error(
+                 "Kolom Jenis Tugas tidak ditemukan"
+             )
+
+            st.stop()
+        # ==========================================
+        # NAMA DAN NIP OTOMATIS
+        # ==========================================
+        
+        nama_petugas = str(
+              df_penugasan.iloc[0]["Nama Petugas"]
+        )
+
+        nip_petugas = str(
+            df_penugasan.iloc[0]["NIP Petugas"]
+        )
+
+        nip_petugas = (
+            nip_petugas
+            .replace('="', '')
+            .replace('"', '')
+        )
+
+        st.success(
+            f"Petugas : {nama_petugas}"
+        )
+        # ==========================================
+        # REKAP JENIS TUGAS
+        # ==========================================
+        
+        rekap_jenis_tugas = (
+            df_penugasan
+            .dropna(subset=["No Permohonan"])
+            .groupby("Jenis Tugas")["No Permohonan"]
+            .nunique()
+            .reset_index(name="Jumlah No Permohonan Unik")
+        )
+        
+        st.subheader(
+            "Rekap Jenis Tugas"
+        )
+        
+        st.dataframe(
+            rekap_jenis_tugas,
+            use_container_width=True
+        )
+        
+        jenis_tugas_opsi = sorted(
+            df_penugasan["Jenis Tugas"]
+            .dropna()
+            .astype(str)
+            .unique()
+            .tolist()
+        )
+        
+        jenis_tugas_dipilih = st.multiselect(
+            "Pilih Jenis Tugas untuk Generate Dokumen",
+            options=jenis_tugas_opsi,
+            default=jenis_tugas_opsi
+        )
+        if not jenis_tugas_dipilih:
+
+            st.warning(
+                "Pilih minimal satu Jenis Tugas untuk generate dokumen"
+            )
+            st.stop()
+        df_penugasan_terpilih = df_penugasan[
+            df_penugasan["Jenis Tugas"]
+            .astype(str)
+            .isin(jenis_tugas_dipilih)
+        ]
+        
+       
+        # ==========================================
+        # NOMOR DOKUMEN UNIK
+        # ==========================================
+
+        nomor_dokumen = (
+            df_penugasan_terpilih["No Permohonan"]
+            .dropna()
+            .astype(str)
+            .unique()
+            .tolist()
+        )
+       
+        # ==========================================
+        # BACA PELEPASAN
+        # ==========================================
+
+        list_df = []
+
+        def baca_pelepasan_excel(file):
+
+            # Baca semua baris tanpa header
+            raw = pd.read_excel(file, header=None)
+        
+            header_idx = None
+        
+            # Cari baris yang berisi "No. K.1.1"
+            for i in range(len(raw)):
+                if "No. K.1.1" in raw.iloc[i].astype(str).tolist():
+                    header_idx = i
+                    break
+        
+            if header_idx is None:
+                raise Exception("Header 'No. K.1.1' tidak ditemukan.")
+        
+            # Baca ulang dengan header yang benar
+            df = pd.read_excel(file, header=header_idx)
+        
+            # Bersihkan nama kolom
+            df.columns = df.columns.astype(str).str.strip()
+        
+            # Hapus baris kosong
+            df = df.dropna(how="all")
+        
+            return df
+        
+        
+        list_df = []
+        
+        for file in file_pelepasan:
+            df_tmp = baca_pelepasan_excel(file)
+            list_df.append(df_tmp)
+        
+        df_pelepasan = pd.concat(
+            list_df,
+            ignore_index=True
+        )
+
+        if "No. K.1.1" not in df_pelepasan.columns:
+
+            st.error(
+                "Kolom No. K.1.1 tidak ditemukan"
+            )
+
+            st.stop()
+
+        # ==========================================
+        # FILTER
+        # ==========================================
+
+        df_filter = df_pelepasan[
+            df_pelepasan["No. K.1.1"]
+            .astype(str)
+            .isin(nomor_dokumen)
+        ]
+        with st.sidebar.expander(
+            "Informasi Proses"
+        ):
+
+            st.metric(
+                "Jenis Tugas Dipilih",
+                len(jenis_tugas_dipilih)
+            )
+    
+            st.metric(
+                "Nomor Dokumen Unik",
+                len(nomor_dokumen)
+            )
+    
+            st.metric(
+                "Baris Cocok",
+                len(df_filter)
+            )
+       
+        nomor_opsi = sorted(
+            df_filter["No. K.1.1"]
+            .astype(str)
+            .unique()
+            .tolist()
+        )
+
+        # ==========================================
+        # PENGATURAN HASIL
+        # ==========================================
+
+        st.subheader(
+            "Pengaturan Hasil Pemeriksaan"
+        )
+
+        semua_admin = st.checkbox(
+            "Semua Administrasi = Lengkap, sah dan benar",
+            value=True
+        )
+
+        semua_kesehatan = st.checkbox(
+            "Semua Kesehatan = BEBAS OPTK",
+            value=True
+        )
+
+        semua_kesimpulan = st.checkbox(
+            "Semua Kesimpulan = PEMBEBASAN",
+            value=True
+        )
+
+        admin_override = {}
+
+        kesehatan_override = {}
+
+        kesimpulan_override = {}
+
+        # ==========================================
+        # ADMINISTRASI
+        # ==========================================
+
+        if not semua_admin:
+
+            st.subheader(
+                "Pengecualian Administrasi"
+            )
+
+            for nomor in nomor_opsi:
+
+                admin_override[nomor] = st.text_input(
+                    f"Administrasi - {nomor}",
+                    value="Lengkap, sah dan benar"
+                )
+
+        # ==========================================
+        # KESEHATAN
+        # ==========================================
+
+        if not semua_kesehatan:
+
+            st.subheader(
+                "Pengecualian Kesehatan"
+            )
+
+            for nomor in nomor_opsi:
+
+                kesehatan_override[nomor] = st.text_input(
+                    f"Kesehatan - {nomor}",
+                    value="BEBAS OPTK"
+                )
+
+        # ==========================================
+        # KESIMPULAN
+        # ==========================================
+
+        if not semua_kesimpulan:
+
+            st.subheader(
+                "Pengecualian Kesimpulan"
+            )
+
+            for nomor in nomor_opsi:
+
+                kesimpulan_override[nomor] = st.text_input(
+                    f"Kesimpulan - {nomor}",
+                    value="PEMBEBASAN"
+                )
+
+        # ==========================================
+        # PENGATURAN KOMODITAS DAN JUMLAH BARIS
+        # ==========================================
+
+        st.subheader("Pengaturan Detail Laporan")
+
+        sumber_komoditas_opsi = ["Nama Tercetak"]
+        if "Komoditas" in df_filter.columns:
+            sumber_komoditas_opsi.append("Komoditas")
+
+        sumber_komoditas = st.radio(
+            "Sumber nama komoditas",
+            options=sumber_komoditas_opsi,
+            horizontal=True,
+            help="Pilih kolom yang akan digunakan sebagai isi Komoditas pada laporan."
+        )
+
+        pilihan_jumlah_baris = st.selectbox(
+            "Jumlah baris data yang dimasukkan ke laporan",
+            options=["Semua baris", "5 baris", "10 baris", "20 baris", "50 baris", "Tentukan sendiri"],
+            index=0,
+            help="Pembatasan diterapkan setelah data difilter dan diurutkan berdasarkan tanggal."
+        )
+
+        jumlah_baris_maks = None
+        if pilihan_jumlah_baris == "Tentukan sendiri":
+            jumlah_baris_maks = st.number_input(
+                "Maksimal jumlah baris",
+                min_value=1,
+                max_value=max(1, len(df_filter)),
+                value=min(5, max(1, len(df_filter))),
+                step=1
+            )
+        elif pilihan_jumlah_baris != "Semua baris":
+            jumlah_baris_maks = int(pilihan_jumlah_baris.split()[0])
+
+        col1, col2 = st.columns(2)
+
+        with col1:
+            generate_apt = st.button("📄 Generate APT")
+
+        with col2:
+            generate_pkt = st.button("📄 Generate PKT")
+        
+       # Simpan status generate
+        if generate_apt:
+            st.session_state.generated = True
+            st.session_state.format_laporan = "APT"
+
+        if generate_pkt:
+            st.session_state.generated = True
+            st.session_state.format_laporan = "PKT"
+
+        if st.session_state.get("generated", False):
+
+            format_laporan = st.session_state.format_laporan
+    
+            hasil = []
+
+            nomor_urut = 1
+
+            for nomor, grup in df_filter.groupby(
+                "No. K.1.1"
+            ):
+
+                tanggal = grup.iloc[0][
+                    "Tgl Dokumen"
+                ]
+
+                satpel = grup.iloc[0][
+                    "Satpel"
+                ]
+
+                nomor_dok_hasil = grup.iloc[0][
+                    "Nomor Dokumen"
+                ]
+
+                nomor_permohonan = str(nomor)
+
+                if "-T1." in nomor_permohonan:
+                    tujuan = grup.iloc[0]["Negara Tujuan"]
+
+                elif "-T2." in nomor_permohonan:
+                    tujuan = grup.iloc[0]["Asal"]
+
+                elif "-T3." in nomor_permohonan:        
+                    tujuan = grup.iloc[0]["Daerah Tujuan"]
+
+                elif "-T4." in nomor_permohonan:
+                    tujuan = grup.iloc[0]["Daerah Asal"]
+
+                else:
+                    tujuan = "-"
+
+                kolom_komoditas = sumber_komoditas
+                if kolom_komoditas not in grup.columns:
+                    kolom_komoditas = "Nama Tercetak"
+
+                komoditas = ", ".join(
+                    grup[kolom_komoditas]
+                    .dropna()
+                    .astype(str)
+                    .str.strip()
+                    .loc[lambda kolom: kolom.ne("")]
+                    .unique()
+                )
+
+                nomor_seri = ", ".join(
+                    grup["Nomor Seri"]
+                    .dropna()
+                    .astype(str)
+                    .unique()
+                )
+
+                administrasi = (
+                    "Lengkap, sah dan benar"
+                    if semua_admin
+                    else admin_override.get(
+                        nomor,
+                        "Lengkap, sah dan benar"
+                    )
+                )
+
+                kesehatan = (
+                    "BEBAS OPTK"
+                    if semua_kesehatan
+                    else kesehatan_override.get(
+                        nomor,
+                        "BEBAS OPTK"
+                    )
+                )
+
+                kesimpulan = (
+                    "PEMBEBASAN"
+                    if semua_kesimpulan
+                    else kesimpulan_override.get(
+                        nomor,
+                        "PEMBEBASAN"
+                    )
+                )
+
+                hasil.append([
+                    nomor_urut,
+                    tanggal,
+                    satpel,
+                    nomor,
+                    nomor_dok_hasil,
+                    komoditas,
+                    tujuan,
+                    nomor_seri,
+                    grup.iloc[0]["Vol P1"],
+                    grup.iloc[0]["Satuan Lain"],
+                    grup.iloc[0]["Dokumen Pendukung"],
+                    administrasi,
+                    kesehatan,
+                    kesimpulan
+                ])
+
+                nomor_urut += 1
+
+            df_hasil = pd.DataFrame(
+                hasil,
+                columns=[
+                    "No.",
+                    "Tgl Dokumen",
+                    "Satpel",
+                    "K.1.1",
+                    "Nomor Dokumen",
+                    "Komoditas",
+                    "Tujuan",
+                    "Nomor Seri",
+                    "Jumlah",
+                    "Satuan",
+                    "Dokumen Pendukung",
+                    "Administrasi",
+                    "Kesehatan",
+                    "Kesimpulan"
+                ]
+            )
+            df_hasil["Tgl Dokumen"] = pd.to_datetime(
+                df_hasil["Tgl Dokumen"]
+            )
+            df_hasil = df_hasil.sort_values(
+                by="Tgl Dokumen",
+                ascending=True
+            ).reset_index(drop=True)
+
+            # Batasi jumlah BARIS data jika pengguna memilih batas tertentu.
+            # Data yang dipertahankan adalah data terawal berdasarkan urutan tanggal.
+            if jumlah_baris_maks is not None:
+                df_hasil = df_hasil.head(int(jumlah_baris_maks)).copy()
+
+            # Nomor urut disusun ulang setelah pembatasan baris.
+            df_hasil["No."] = range(
+                1,
+                len(df_hasil) + 1
+            )
+
+            st.success(
+                f"Berhasil membuat {len(df_hasil)} data laporan"
+            )
+
+            st.dataframe(
+                df_hasil,
+                use_container_width=True
+            )
+            
+            # ==========================================
+            # DATA UNTUK PDF
+            # ==========================================
+
+            rows = df_hasil.values.tolist()
+
+            # ==========================================
+            # PERIODE
+            # ==========================================
+
+            # Ambil range tanggal dari tabel hasil
+            tanggal_min = df_hasil["Tgl Dokumen"].min()
+            tahun = tanggal_min.year
+            bulan = tanggal_min.month
+
+            if tanggal_min.day < 16:
+                # mundur satu bulan jika ada dokumen sebelum tanggal 16
+                if bulan == 1:
+                    bulan = 12
+                    tahun -= 1
+                else:
+                    bulan -= 1
+
+            # tanggal awal = 16 bulan referensi
+            tanggal_awal = datetime(tahun, bulan, 16)
+
+            # tanggal akhir = 15 bulan berikutnya
+            if bulan == 12:
+                tanggal_akhir = datetime(tahun+1, 1, 15)
+            else:
+                tanggal_akhir = datetime(tahun, bulan+1, 15)
+
+            bulan_nama = {
+                1:"Januari", 2:"Februari", 3:"Maret", 4:"April",
+                5:"Mei", 6:"Juni", 7:"Juli", 8:"Agustus",
+                9:"September", 10:"Oktober", 11:"November", 12:"Desember"
+            }
+
+            waktu_pelaksanaan = (
+                f"{tanggal_awal.day} {bulan_nama[tanggal_awal.month]} {tanggal_awal.year} "
+                f"s.d. {tanggal_akhir.day} {bulan_nama[tanggal_akhir.month]} {tanggal_akhir.year}"
+            )
+
+            bulan = {
+                1:"Januari",
+                2:"Februari",
+                3:"Maret",
+                4:"April",
+                5:"Mei",
+                6:"Juni",
+                7:"Juli",
+                8:"Agustus",
+                9:"September",
+                10:"Oktober",
+                11:"November",
+                12:"Desember"
+            }
+
+            waktu_pelaksanaan = (
+                f"{tanggal_awal.day} "
+                f"{bulan[tanggal_awal.month]} "
+                f"{tanggal_awal.year} s.d. "
+                f"{tanggal_akhir.day} "
+                f"{bulan[tanggal_akhir.month]} "
+                f"{tanggal_akhir.year}"
+            )
+
+            # ==========================================
+            # PDF
+            # ==========================================
+
+            buffer = BytesIO()
+
+            pdf = SimpleDocTemplate(
+                buffer,
+                leftMargin=15,
+                rightMargin=15,
+                topMargin=15,
+                bottomMargin=15
+            )
+
+            elements = []
+
+            # ==========================================
+            # HEADER
+            # ==========================================
+
+            try:
+
+                header = Image(
+                    HEADER_IMAGE,
+                    width=520,
+                    height=80
+                )
+
+                elements.append(
+                    header
+                )
+
+            except:
+                pass
+
+            elements.append(
+                Spacer(1, 10)
+            )
+
+            elements.append(
+                Paragraph(
+                    "LAPORAN PELAKSANAAN KEGIATAN KARANTINA TUMBUHAN",
+                    style_judul
+                )
+            )
+
+            # ==========================================
+            # IDENTITAS
+            # ==========================================
+
+            data_identitas = [
+
+                ["1.", "Identitas Pegawai", "", ""],
+
+                ["", "a. Nama", ":", nama_petugas],
+
+                ["", "b. NIP", ":", nip_petugas],
+
+                [
+                    "",
+                    "c. Pangkat/golongan ruang/TMT",
+                    ":",
+                    pangkat
+                ],
+
+                [
+                    "",
+                    "d. Jabatan",
+                    ":",
+                    jabatan
+                ],
+
+                [
+                    "",
+                    "e. Unit Kerja",
+                    ":",
+                    unit
+                ],
+
+                [
+                    "2.",
+                    "Dasar Pelaksanaan",
+                    ":",
+                    dasar
+                ],
+
+                [
+                    "3.",
+                    "Rencana Hasil Kerja",
+                    ":",
+                    rhk
+                ],
+                [
+                    "4.",
+                    Paragraph("Rencana Aksi", style_wrap),
+                    ":",
+                    Paragraph(ra, style_wrap)
+                ],
+                [
+                    "5.",
+                    Paragraph("Indikator Kinerja Individu", style_wrap),
+                    ":",
+                    Paragraph(iki, style_wrap)
+                ],
+                [
+                    "6.",
+                    "Waktu Pelaksanaan",
+                    ":",
+                    waktu_pelaksanaan
+                ]
+
+            ]
+
+            tabel_identitas = Table(
+                data_identitas,
+                colWidths=[
+                    10,
+                    140,
+                    10,
+                    340
+                ]
+            )
+
+            tabel_identitas.setStyle(
+                TableStyle([
+
+                    ('FONTNAME',
+                     (0,0),
+                     (-1,-1),
+                     'Helvetica'),
+
+                    ('FONTSIZE',
+                     (0,0),
+                     (-1,-1),
+                     9),
+
+                    ('VALIGN',
+                     (0,0),
+                     (-1,-1),
+                     'TOP'),
+
+                    ('LEFTPADDING',
+                     (0,0),
+                     (-1,-1),
+                     0),
+
+                    ('RIGHTPADDING',
+                     (0,0),
+                     (-1,-1),
+                     0),
+                    ('TOPPADDING', 
+                     (0,0), (-1,-1), 
+                     0),
+                    
+                    ('BOTTOMPADDING', 
+                     (0,0), (-1,-1), 
+                     0),
+
+                ])
+            )
+
+            elements.append(
+                tabel_identitas
+            )
+
+            elements.append(
+                Spacer(1,15)
+            )
+
+            # ==========================================
+            # SUB JUDUL
+            # ==========================================
+
+            elements.append(
+                Paragraph(
+                    "DAFTAR KEGIATAN SEBAGAI HASIL PELAKSANAAN PEKERJAAN",
+                    style_sub_judul
+                )
+            )
+
+            elements.append(
+                Spacer(1,5)
+            )
+
+        if format_laporan == "APT":
+            # ==========================================
+            # HEADER TABEL
+            # ==========================================
+
+            data_tabel = [[
+
+                Paragraph(
+                    "<b>No</b>",
+                    style_wrap
+                ),
+
+                Paragraph(
+                    "<b>Waktu<br/>Pelaksanaan</b>",
+                    style_wrap
+                ),
+
+                Paragraph(
+                    "<b>Lokasi Kegiatan</b>",
+                    style_wrap
+                ),
+
+                Paragraph(
+                    "<b>Nomor Dokumen</b>",
+                    style_wrap
+                ),
+
+                Paragraph(
+                    "<b>Hasil Kegiatan</b>",
+                    style_wrap
+                )
+
+            ]]
+            # ==========================================
+            # ISI TABEL
+            # ==========================================
+
+            for row in rows:
+
+                hasil = Table([
+
+                    [
+                        Paragraph("<b>Nomor Sertifikat</b>", style_wrap),
+                        ":",
+                        Paragraph(str(row[4]), style_wrap)
+                    ],
+
+                    [
+                        Paragraph("<b>Jenis MP</b>", style_wrap),
+                        ":",
+                        Paragraph(str(row[5]), style_wrap)
+                    ],
+
+                    [
+                        Paragraph("<b>Area Asal/Tujuan</b>", style_wrap),
+                        ":",
+                        Paragraph(str(row[6]), style_wrap)
+                    ],
+
+                    [
+                        Paragraph("<b>Nomor Seri Dokumen</b>", style_wrap),
+                        ":",
+                        Paragraph(str(row[7]), style_wrap)
+                    ],
+
+                    [
+                        Paragraph("<b>Hasil Administrasi</b>", style_wrap),
+                        ":",
+                        Paragraph(str(row[11]), style_wrap)
+                    ],
+
+                    [
+                        Paragraph("<b>Hasil Kesehatan</b>", style_wrap),
+                        ":",
+                        Paragraph(str(row[12]), style_wrap)
+                    ],
+
+                    [
+                        Paragraph("<b>Kesimpulan</b>", style_wrap),
+                        ":",
+                        Paragraph(str(row[13]), style_wrap)
+                    ]
+
+                ],
+                colWidths=[85,8,145])
+
+                hasil.setStyle(
+                    TableStyle([
+
+                        ('VALIGN',
+                         (0,0),
+                         (-1,-1),
+                         'TOP'),
+
+                        ('LEFTPADDING',
+                         (0,0),
+                         (-1,-1),
+                         0),
+
+                        ('RIGHTPADDING',
+                         (0,0),
+                         (-1,-1),
+                         0),
+
+                        ('TOPPADDING',
+                         (0,0),
+                         (-1,-1),
+                         0),
+
+                        ('BOTTOMPADDING',
+                         (0,0),
+                         (-1,-1),
+                         0)
+
+                    ])
+                )
+
+                data_tabel.append([
+
+                    Paragraph(
+                        str(row[0]),
+                        style_wrap
+                    ),
+
+                    Paragraph(
+                        str(row[1])[:10],
+                        style_wrap
+                    ),
+
+                    Paragraph(
+                        str(row[2]),
+                        style_wrap
+                    ),
+
+                    Paragraph(
+                        str(row[3]),
+                        style_wrap
+                    ),
+
+                    hasil
+
+                ])
+
+            # ==========================================
+            # TOTAL
+            # ==========================================
+
+            data_tabel.append([
+
+                Paragraph(
+                    "<b>Jumlah Sertifikat</b>",
+                    style_wrap
+                ),
+
+                "",
+                "",
+                "",
+
+                Paragraph(
+                    f"<b>{len(rows)}</b>",
+                    style_wrap
+                )
+
+            ])
+
+            # ==========================================
+            # TABEL UTAMA
+            # ==========================================
+
+            tabel = Table(
+                data_tabel,
+                colWidths=[
+                    28,
+                    68,
+                    85,
+                    80,
+                    272
+                ]
+            )
+
+            tabel.setStyle(
+                TableStyle([
+
+                    ('GRID',
+                     (0,0),
+                     (-1,-1),
+                     0.5,
+                     colors.black),
+
+                    ('BACKGROUND',
+                     (0,0),
+                     (-1,0),
+                     colors.HexColor("#E6E6E6")),
+
+                    ('FONTNAME',
+                     (0,0),
+                     (-1,0),
+                     'Helvetica-Bold'),
+
+                    ('ALIGN',
+                     (0,0),
+                     (-1,0),
+                     'CENTER'),
+
+                    ('VALIGN',
+                     (0,0),
+                     (-1,0),
+                     'MIDDLE'),
+
+                    ('VALIGN',
+                     (0,1),
+                     (-1,-1),
+                     'TOP'),
+
+                    ('SPAN',
+                     (0,-1),
+                     (3,-1)),
+
+                    ('ALIGN',
+                     (0,-1),
+                     (3,-1),
+                     'CENTER'),
+
+                    ('FONTNAME',
+                     (0,-1),
+                     (-1,-1),
+                     'Helvetica-Bold'),
+
+                    ('BACKGROUND',
+                     (0,-1),
+                     (-1,-1),
+                     colors.HexColor("#F2F2F2"))
+
+                ])
+            )
+
+            elements.append(
+                tabel
+            )
+        else:
+            # ==========================================
+            # TABEL PKT
+            # ==========================================
+
+            data_tabel = [[
+
+                Paragraph("<b>No</b>", style_wrap),
+
+                Paragraph("<b>Waktu<br/>Pelaksanaan</b>", style_wrap),
+
+                Paragraph("<b>Tempat<br/>Pelaksanaan</b>", style_wrap),
+
+                Paragraph("<b>Nomor Surat Tugas</b>", style_wrap),
+
+                Paragraph("<b>Hasil Kegiatan</b>", style_wrap),
+
+                Paragraph("<b>Hasil Pemeriksaan</b>", style_wrap)
+
+            ]]
+
+            # ==========================================
+            # ISI DATA
+            # ==========================================
+            for row in rows:
+                # ==============================
+                # TABEL DOKUMEN PENDUKUNG (NESTED)
+                # ==============================
+
+                daftar_dokumen = [
+                    d.strip()
+                    for d in str(row[10]).split(";")
+                    if d.strip()
+                ]
+
+                isi_dokumen = []
+
+                for dok in daftar_dokumen:
+                    isi_dokumen.append([
+                        Paragraph(dok, style_wrap)
+                    ])
+
+                tabel_dokumen = Table(
+                    isi_dokumen,
+                    colWidths=[130]
+                )
+
+                tabel_dokumen.setStyle(TableStyle([
+
+                    ("GRID",(0,0),(-1,-1),0,colors.white),
+
+                    ("LEFTPADDING",(0,0),(-1,-1),0),
+                    ("RIGHTPADDING",(0,0),(-1,-1),0),
+                    ("TOPPADDING",(0,0),(-1,-1),0),
+                    ("BOTTOMPADDING",(0,0),(-1,-1),2),
+
+                    ("VALIGN",(0,0),(-1,-1),"TOP")
+
+                ]))
+
+                hasil_kegiatan = Table(
+
+                    [
+
+                        [
+                            Paragraph("<b>Komoditas</b>", style_wrap),
+                            ":",
+                            Paragraph(str(row[5]), style_wrap)
+                        ],
+
+                        [
+                            Paragraph("<b>Jumlah</b>", style_wrap),
+                            ":",
+                            Paragraph(str(row[8]), style_wrap)
+                        ],
+
+                        [
+                            Paragraph("<b>Satuan</b>", style_wrap),
+                            ":",
+                            Paragraph(str(row[9]), style_wrap)
+                        ],
+
+                        [
+                            Paragraph("<b>Negara Tujuan</b>", style_wrap),
+                            ":",
+                            Paragraph(str(row[6]), style_wrap)
+                        ],
+
+                        [
+                            Paragraph("<b>Dokumen Pendukung</b>", style_wrap),
+                            ":",
+                            tabel_dokumen
+                        ]
+
+                    ],
+
+                    colWidths=[70,8,135]
+
+                    )
+
+                hasil_kegiatan.setStyle(TableStyle([
+
+                    ("VALIGN",(0,0),(-1,-1),"TOP"),
+
+                    ("LEFTPADDING",(0,0),(-1,-1),0),
+
+                    ("RIGHTPADDING",(0,0),(-1,-1),0),
+
+                    ("TOPPADDING",(0,0),(-1,-1),0),
+
+                    ("BOTTOMPADDING",(0,0),(-1,-1),0)
+
+                ]))
+
+                hasil_pemeriksaan = Paragraph(
+
+                    "Dilakukan pembebasan "
+                    "(Pemeriksaan administratif dan pemeriksaan kesehatan sesuai dengan persyaratan karantina)",
+                    
+                    style_wrap
+
+                )
+
+                data_tabel.append([
+
+                    Paragraph(str(row[0]), style_wrap),
+
+                    Paragraph(str(row[1])[:10], style_wrap),
+
+                    Paragraph(str(row[2]), style_wrap),
+
+                    Paragraph(str(row[4]), style_wrap),
+
+                    hasil_kegiatan,
+
+                    hasil_pemeriksaan
+
+                ])
+            
+            # ==========================================
+            # TOTAL
+            # ==========================================
+
+            data_tabel.append([
+
+                Paragraph("<b>Jumlah Sertifikat</b>", style_wrap),
+
+                "",
+
+                "",
+
+                "",
+
+                "",
+
+                Paragraph(f"<b>{len(rows)}</b>", style_wrap)
+
+            ])
+
+            # ==========================================
+            # TABEL
+            # ==========================================
+
+            tabel = Table(
+                data_tabel,
+                colWidths=[
+                    25,
+                    68,
+                    70,
+                    70,
+                    217,
+                    105
+                ]
+            )
+            tabel.setStyle(TableStyle([
+
+                ("GRID",(0,0),(-1,-1),0.5,colors.black),
+
+                ("BACKGROUND",(0,0),(-1,0),colors.HexColor("#E6E6E6")),
+
+                ("FONTNAME",(0,0),(-1,0),"Helvetica-Bold"),
+
+                ("ALIGN",(0,0),(-1,0),"CENTER"),
+
+                ("VALIGN",(0,0),(-1,0),"MIDDLE"),
+
+                ("VALIGN",(0,1),(-1,-1),"TOP"),
+
+                ("SPAN",(0,-1),(4,-1)),
+
+                ("ALIGN",(0,-1),(4,-1),"CENTER"),
+
+                ("FONTNAME",(0,-1),(-1,-1),"Helvetica-Bold"),
+
+                ("BACKGROUND",(0,-1),(-1,-1),colors.HexColor("#F2F2F2"))
+
+            ]))
+
+            elements.append(tabel)
+            
+        # ==========================================
+        # TTD
+        # ==========================================
+
+        elements.append(
+            Spacer(1,15)
+        )
+        
+        if ttd_kiri and ttd_kanan:
+        
+            ttd_surya = Image(
+                ttd_kiri,
+                width=100,
+                height=40
+            )
+            ttd_petugas = Image(
+                ttd_kanan,
+                width=100,
+                height=40
+            )
+                        
+            TTD_WIDTH = 565
+        
+            kiri = Table([
+                [
+                    Paragraph(
+                        "<br/>Mengetahui,<br/>Ketua Tim Karantina Tumbuhan",
+                        style_wrap
+                    )
+                ],
+        
+                [Spacer(1,0)],
+        
+                [ttd_surya],   # sekarang stempel + tanda tangan kiri jadi satu blok
+        
+                [Spacer(1,0)],
+        
+                [
+                    Paragraph(
+                        "<b>Surya Dharma, S.P.</b><br/>NIP. 197705152001121002",
+                        style_wrap
+                    )
+                ]
+        
+            ],
+            colWidths=[TTD_WIDTH/2])
+
+            kanan = Table([
+                [Spacer(1,10)],
+                [
+                    Paragraph(
+                        jabatan_ttd,
+                        style_wrap
+                    )
+                ],
+
+                [Spacer(1,3)],
+
+                [ttd_petugas],
+
+                [Spacer(1,0)],
+
+                [
+                    Paragraph(
+                        f"<b>{nama_lengkap_beserta_gelar}</b><br/>"
+                        f"NIP. {nip_petugas}",
+                        style_wrap
+                    )
+                ]
+
+            ],
+            colWidths=[TTD_WIDTH/2])
+            tanggal_kanan = Paragraph(
+                f"Pekanbaru, {datetime.now().day} "
+                f"{bulan[datetime.now().month]} "
+                f"{datetime.now().year}",
+                style_wrap
+            )
+            
+            baris_tanggal = Table(
+                [["", "", tanggal_kanan]],
+                colWidths=[
+                    215,
+                    50,
+                    200
+                ]
+            )
+            
+            elements.append(
+                baris_tanggal
+            )
+            
+            elements.append(
+                Spacer(1,0)
+            )
+            ttd_table = Table(
+                [["", kiri, "", kanan]],
+                colWidths=[
+                    100,
+                    200,
+                    50,
+                    200
+                ]
+            )
+
+            ttd_table.setStyle(
+                TableStyle([
+
+                    ('VALIGN',
+                        (0,0),
+                        (-1,-1),
+                        'TOP'),
+
+                    ('LEFTPADDING',
+                        (0,0),
+                        (-1,-1),
+                        0),
+
+                    ('RIGHTPADDING',
+                        (0,0),
+                        (-1,-1),
+                        0),
+
+                    ('TOPPADDING',
+                        (0,0),
+                        (-1,-1),
+                        0),
+
+                    ('BOTTOMPADDING',
+                        (0,0),
+                        (-1,-1),
+                        0),
+
+                    ('ALIGN',
+                        (0,0),
+                        (-1,-1),
+                        'CENTER')
+                ])
+            )
+
+            elements.append(
+                ttd_table
+            )
+
+
+
+        # ==========================================
+        # BUILD PDF
+        # ==========================================
+
+        pdf.build(elements)
+        buffer.seek(0)
+        buffer = tambah_stempel_dekat_ketua_tim(
+            buffer,
+            STEMPEL_PATH
+        )
+
+        st.success(
+            "PDF berhasil dibuat"
+        )
+
+        st.session_state.pdf_bytes = buffer.getvalue()
+        if "show_preview" not in st.session_state:
+            st.write("show_preview =", st.session_state.get("show_preview"))
+            st.session_state.show_preview = False
+
+        st.success(
+            "PDF berhasil dibuat. Klik Preview PDF untuk melihat sebelum download."
+        )
+        # -----------------------------
+        # TAMPILKAN SETELAH PDF ADA
+        # -----------------------------
+        if st.session_state.get("pdf_bytes"):
+
+            if st.button("Preview PDF"):
+                st.session_state.show_preview = True
+
+            if st.session_state.get("show_preview", False):
+                pdf_viewer(st.session_state.pdf_bytes)
+
+            st.download_button(
+                "Download PDF",
+                data=st.session_state.pdf_bytes,
+                file_name="laporan.pdf",
+                mime="application/pdf"
+            )
+    except Exception as e:
+
+        st.error(
+            f"Terjadi kesalahan: {e}"
+        )
